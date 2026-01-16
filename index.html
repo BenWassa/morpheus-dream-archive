@@ -371,7 +371,11 @@
                                         setOriginalTranscription(parsed.originalTranscription || '');
                                         setSummary(parsed.summary || '');
                                         setKeywords(parsed.keywords || '');
-                                        setScenes(parsed.scenes || [{ text: '', image: null, imagePreview: null }]);
+                                        setScenes(parsed.scenes ? parsed.scenes.map(scene => ({
+                                                text: scene.text || '',
+                                                image: null, // Images are not persisted due to localStorage size limits
+                                                imagePreview: null
+                                        })) : [{ text: '', image: null, imagePreview: null }]);
                                         setFragments(parsed.fragments || '');
                                         setJsonText(parsed.jsonText || '');
                                         setIsParsed(parsed.isParsed || false);
@@ -381,19 +385,44 @@
                         }
                 }, []);
 
-                // Save state to localStorage whenever it changes
+                // Save state to localStorage whenever it changes (excluding large image data)
                 useEffect(() => {
+                        const scenesWithoutImages = scenes.map(scene => ({
+                                text: scene.text,
+                                // Exclude image and imagePreview to avoid localStorage quota issues
+                        }));
                         const stateToSave = {
                                 date,
                                 originalTranscription,
                                 summary,
                                 keywords,
-                                scenes,
+                                scenes: scenesWithoutImages,
                                 fragments,
                                 jsonText,
                                 isParsed
                         };
-                        localStorage.setItem('dreamArchiveFormState', JSON.stringify(stateToSave));
+                        try {
+                                localStorage.setItem('dreamArchiveFormState', JSON.stringify(stateToSave));
+                        } catch (error) {
+                                console.warn('Failed to save form state to localStorage:', error);
+                                // If quota exceeded, try to save a minimal version
+                                if (error.name === 'QuotaExceededError') {
+                                        const minimalState = {
+                                                date,
+                                                originalTranscription,
+                                                summary,
+                                                keywords,
+                                                fragments,
+                                                jsonText,
+                                                isParsed
+                                        };
+                                        try {
+                                                localStorage.setItem('dreamArchiveFormState', JSON.stringify(minimalState));
+                                        } catch (e) {
+                                                console.warn('Failed to save even minimal state:', e);
+                                        }
+                                }
+                        }
                 }, [date, originalTranscription, summary, keywords, scenes, fragments, jsonText, isParsed]);
 
                 const SAMPLE_JSON = `{
