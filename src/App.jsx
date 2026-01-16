@@ -3,6 +3,12 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { Plus, X, Download, Moon, Image as ImageIcon, Copy } from 'lucide-react';
 
+// Utility function for text truncation
+const truncateText = (text, maxLength) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
 /* --- UI COMPONENTS --- */
 
 // Ambient background effect
@@ -226,12 +232,6 @@ const AddEntryForm = () => {
   });
   const [scenes, setScenes] = useState([]); // Separate for image handling
   const [error, setError] = useState('');
-
-  // Utility function for text truncation
-  const truncateText = (text, maxLength) => {
-    if (!text || text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + '...';
-  };
 
   const parseJson = () => {
     try {
