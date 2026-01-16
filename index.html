@@ -441,18 +441,18 @@
                 const validateForm = () => {
                         const newErrors = [];
                         if (!date) newErrors.push('Date is required');
-            
+
                         let hasValidScene = false;
                         scenes.forEach((scene, index) => {
-                                if (scene.text && scene.image) {
+                                if (scene.text) {
                                         hasValidScene = true;
-                                } else if (scene.text || scene.image) {
-                                        newErrors.push(`Scene ${index + 1}: Both text and image are required`);
+                                } else if (scene.image) {
+                                        newErrors.push(`Scene ${index + 1}: Text is required for all scenes`);
                                 }
                         });
 
                         if (!hasValidScene) {
-                                newErrors.push('At least one scene must have both text and image');
+                                newErrors.push('At least one scene must have text');
                         }
 
                         setErrors(newErrors);
@@ -471,7 +471,7 @@
 
                                 const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
                                 const fragmentsArray = fragments.split('\n').map(f => f.trim()).filter(f => f.length > 0);
-                                const validScenes = scenes.filter(scene => scene.text && scene.image);
+                                const validScenes = scenes.filter(scene => scene.text);
 
                                 const jsonData = {
                                         date: date,
@@ -479,32 +479,36 @@
                                         summary: summary,
                                         keywords: keywordsArray,
                                         scenes: validScenes.map((scene, index) => {
-                                                const extension = scene.image.name.split('.').pop();
-                                                const sceneNumber = String(index + 1).padStart(2, '0');
-                                                return {
-                                                        text: scene.text,
-                                                        image: `images/${date}-${sceneNumber}.${extension}`
-                                                };
+                                                const sceneData = { text: scene.text };
+                                                if (scene.image) {
+                                                        const extension = scene.image.name.split('.').pop();
+                                                        const sceneNumber = String(index + 1).padStart(2, '0');
+                                                        sceneData.image = `images/${date}-${sceneNumber}.${extension}`;
+                                                }
+                                                return sceneData;
                                         }),
                                         fragments: fragmentsArray
                                 };
 
                                 zip.file(`entries/${date}.json`, JSON.stringify(jsonData, null, 2));
 
+                                // Only process scenes that have images
                                 for (let i = 0; i < validScenes.length; i++) {
                                         const scene = validScenes[i];
-                                        const extension = scene.image.name.split('.').pop();
-                                        const sceneNumber = String(i + 1).padStart(2, '0');
-                                        const fileName = `images/${date}-${sceneNumber}.${extension}`;
-    
-                                        const imageData = await new Promise((resolve, reject) => {
-                                                const reader = new FileReader();
-                                                reader.onload = (e) => resolve(e.target.result);
-                                                reader.onerror = reject;
-                                                reader.readAsArrayBuffer(scene.image);
-                                        });
+                                        if (scene.image) {
+                                                const extension = scene.image.name.split('.').pop();
+                                                const sceneNumber = String(i + 1).padStart(2, '0');
+                                                const fileName = `images/${date}-${sceneNumber}.${extension}`;
 
-                                        zip.file(fileName, imageData);
+                                                const imageData = await new Promise((resolve, reject) => {
+                                                        const reader = new FileReader();
+                                                        reader.onload = (e) => resolve(e.target.result);
+                                                        reader.onerror = reject;
+                                                        reader.readAsArrayBuffer(scene.image);
+                                                });
+
+                                                zip.file(fileName, imageData);
+                                        }
                                 }
 
                                 const content = await zip.generateAsync({ type: 'blob' });
