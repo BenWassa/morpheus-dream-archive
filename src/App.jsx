@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { Plus, X, Download, Moon, Image as ImageIcon } from 'lucide-react';
+import { Plus, X, Download, Moon, Image as ImageIcon, Copy } from 'lucide-react';
 
 /* --- UI COMPONENTS --- */
 
@@ -254,6 +254,53 @@ const AddEntryForm = () => {
     }
   };
 
+  const copyPrompt = async () => {
+    const prompt = `You are a dream analysis assistant. Take the following raw dream transcription and structure it into a JSON format for archiving. Extract key elements and organize them systematically.
+
+Raw dream transcription:
+[PASTE YOUR RAW DREAM TRANSCRIPTION HERE]
+
+Please output ONLY valid JSON in this exact format:
+{
+  "date": "YYYY-MM-DD",
+  "originalTranscription": "The complete original transcription text",
+  "summary": "A concise 2-3 sentence summary of the entire dream",
+  "keywords": ["keyword1", "keyword2", "keyword3", "etc"],
+  "scenes": [
+    "Scene 1 description - detailed narrative of what happened in this part of the dream",
+    "Scene 2 description - detailed narrative of what happened in this part of the dream",
+    "Scene 3 description - detailed narrative of what happened in this part of the dream"
+  ],
+  "fragments": [
+    "Any disconnected dream fragments or symbols that don't fit into main scenes",
+    "Another fragment if applicable"
+  ]
+}
+
+Guidelines:
+- Date should be today's date in YYYY-MM-DD format
+- Summary should capture the essence of the entire dream
+- Keywords should be 5-10 relevant terms that capture themes, emotions, symbols, or key elements
+- Scenes should be broken down chronologically or thematically into 2-5 detailed descriptions
+- Fragments are optional - only include if there are truly disconnected elements
+- Be descriptive but concise in scene descriptions
+- Maintain the original voice and details from the transcription`;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      // Could add a toast notification here if desired
+    } catch (err) {
+      console.error('Failed to copy prompt:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = prompt;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  };
+
   const handleImageUpload = (index, e) => {
     const file = e.target.files[0];
     if (file) {
@@ -320,7 +367,13 @@ const AddEntryForm = () => {
               className="w-full bg-[#0f172a] border border-white/10 rounded-lg p-4 text-sm font-mono text-slate-300 h-64 focus:ring-2 focus:ring-purple-500 outline-none"
             />
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-            <div className="mt-4">
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={copyPrompt}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <Copy size={16} /> Copy Prompt
+              </button>
               <button
                 onClick={parseJson}
                 className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
