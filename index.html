@@ -578,9 +578,22 @@
                                 const content = await zip.generateAsync({ type: 'blob' });
                                 window.saveAs(content, `dream-${date}.zip`);
 
-                                setSuccessMessage(`Add this to index.json at the top of the "entries" array:\n"${date}",`);
+                                setSuccessMessage(`🎉 Dream files generated successfully!
 
-                                setTimeout(() => clearForm(), 5000);
+📦 What was created:
+• A ZIP file containing your dream entry JSON and images
+• Download: dream-${date}.zip
+
+📝 Next steps:
+1. Extract the ZIP file to your project root directory
+2. Add "${date}" to the top of the "entries" array in index.json
+3. Commit and push the new files to your repository
+
+✨ Your dream will then appear in the gallery view!
+
+The form will reset in 10 seconds...`);
+
+                                setTimeout(() => clearForm(), 10000);
 
                         } catch (error) {
                                 setErrors([`Error generating files: ${error.message}`]);
