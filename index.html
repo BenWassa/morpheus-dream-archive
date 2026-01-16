@@ -361,6 +361,41 @@
                 const [jsonText, setJsonText] = useState('');
                 const [isParsed, setIsParsed] = useState(false);
 
+                // Load saved state from localStorage on component mount
+                useEffect(() => {
+                        const savedState = localStorage.getItem('dreamArchiveFormState');
+                        if (savedState) {
+                                try {
+                                        const parsed = JSON.parse(savedState);
+                                        setDate(parsed.date || new Date().toISOString().split('T')[0]);
+                                        setOriginalTranscription(parsed.originalTranscription || '');
+                                        setSummary(parsed.summary || '');
+                                        setKeywords(parsed.keywords || '');
+                                        setScenes(parsed.scenes || [{ text: '', image: null, imagePreview: null }]);
+                                        setFragments(parsed.fragments || '');
+                                        setJsonText(parsed.jsonText || '');
+                                        setIsParsed(parsed.isParsed || false);
+                                } catch (error) {
+                                        console.warn('Failed to restore form state:', error);
+                                }
+                        }
+                }, []);
+
+                // Save state to localStorage whenever it changes
+                useEffect(() => {
+                        const stateToSave = {
+                                date,
+                                originalTranscription,
+                                summary,
+                                keywords,
+                                scenes,
+                                fragments,
+                                jsonText,
+                                isParsed
+                        };
+                        localStorage.setItem('dreamArchiveFormState', JSON.stringify(stateToSave));
+                }, [date, originalTranscription, summary, keywords, scenes, fragments, jsonText, isParsed]);
+
                 const SAMPLE_JSON = `{
   "date": "2026-01-16",
   "originalTranscription": "I was walking through a huge unfinished building that felt like a mix between a university, an airport, and an office tower. Some hallways were pristine and modern, others were crumbling or blocked off. I kept carrying different bags with me, but every time I set one down to pick up another, I felt anxious that I was abandoning something important. At one point I found a control room filled with glowing screens showing projects, timelines, and symbols I recognized but couldn't fully read. A voice told me I had plenty of time, but the building lights kept dimming. I tried to find an exit, but each door led me deeper inside instead of outside.",
@@ -535,6 +570,7 @@
                         fileInputRefs.current = [];
                         setJsonText('');
                         setIsParsed(false);
+                        localStorage.removeItem('dreamArchiveFormState');
                 };
 
                 const loadSampleJson = () => {
