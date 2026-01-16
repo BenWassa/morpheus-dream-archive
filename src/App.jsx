@@ -266,31 +266,43 @@ const AddEntryForm = () => {
 Raw dream transcription:
 [PASTE YOUR RAW DREAM TRANSCRIPTION HERE]
 
-Please output ONLY valid JSON in this exact format:
+Please output ONLY valid JSON in this exact format (no extra text, explanation, or commentary):
 {
   "date": "YYYY-MM-DD",
   "originalTranscription": "The complete original transcription text",
-  "summary": "A concise 2-3 sentence summary of the entire dream",
-  "keywords": ["keyword1", "keyword2", "keyword3", "etc"],
+  "summary": "A concise summary of the entire dream",
+  "keywords": ["keyword1", "keyword2", "keyword3"],
   "scenes": [
-    "Scene 1 description - detailed narrative of what happened in this part of the dream",
-    "Scene 2 description - detailed narrative of what happened in this part of the dream",
-    "Scene 3 description - detailed narrative of what happened in this part of the dream"
+    "Scene 1 description",
+    "Scene 2 description"
   ],
   "fragments": [
-    "Any disconnected dream fragments or symbols that don't fit into main scenes",
-    "Another fragment if applicable"
+    "Optional fragment text"
   ]
 }
 
-Guidelines:
-- Date should be today's date in YYYY-MM-DD format
-- Summary should capture the essence of the entire dream
-- Keywords should be 5-10 relevant terms that capture themes, emotions, symbols, or key elements
-- Scenes should be broken down chronologically or thematically into 2-5 detailed descriptions
-- Fragments are optional - only include if there are truly disconnected elements
-- Be descriptive but concise in scene descriptions
-- Maintain the original voice and details from the transcription`;
+Important constraints (apply exactly):
+- Field length limits (characters):
+  - summary: max 300 characters
+  - each scene description: max 500 characters
+  - each fragment: max 200 characters
+  - keywords: 5-10 items, each < 40 characters
+
+- Arrays and counts:
+  - keywords: prefer 5-10 relevant single-word or short-phrase terms
+  - scenes: provide 2-5 scene strings only
+  - fragments: include up to 10 items only if applicable
+
+  - Behavior for exceeding limits:
+  - If any field would exceed its character limit, truncate it to fit and append an ellipsis ('...') to indicate truncation.
+  - Do not expand the number of items beyond the limits above.
+
+- Data fidelity & style:
+  - Preserve key details and the original voice as much as possible while obeying length limits.
+  - Be concise: avoid multi-paragraph strings for any single field. Keep each field as a single string.
+  - If source information is missing for a required field, set it to an empty string ("") or an empty array as appropriate.
+
+Return only well-formed JSON that strictly follows the schema and constraints above.`;
 
     try {
       await navigator.clipboard.writeText(prompt);
