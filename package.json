@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/BenWassa/morpheus-dream-archive#readme",
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
