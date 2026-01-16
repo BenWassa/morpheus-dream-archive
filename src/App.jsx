@@ -281,11 +281,11 @@ Please output ONLY valid JSON in this exact format (no extra text, explanation, 
   ]
 }
 
-Important constraints (apply exactly):
-- Field length limits (characters):
-  - summary: max 300 characters
-  - each scene description: max 500 characters
-  - each fragment: max 200 characters
+Important constraints (aim to follow):
+- Field length targets (characters, try to stay within these limits):
+  - summary: ~300 characters (concise, 1–2 sentences)
+  - each scene description: ~500 characters (single-paragraph, focused)
+  - each fragment: ~200 characters
   - keywords: 5-10 items, each < 40 characters
 
 - Arrays and counts:
@@ -293,13 +293,13 @@ Important constraints (apply exactly):
   - scenes: provide 2-5 scene strings only
   - fragments: include up to 10 items only if applicable
 
-  - Behavior for exceeding limits:
-  - If any field would exceed its character limit, truncate it to fit and append an ellipsis ('...') to indicate truncation.
-  - Do not expand the number of items beyond the limits above.
+- Behavior when content would otherwise be verbose:
+  - Avoid producing multi-paragraph strings or long, flowing narratives for any single field. Prefer concise single-sentence or short-paragraph entries.
+  - Prioritize the most relevant details when shortening content so the JSON remains useful for archiving and display — do not attempt programmatic truncation (the app will handle any UI truncation).
 
 - Data fidelity & style:
-  - Preserve key details and the original voice as much as possible while obeying length limits.
-  - Be concise: avoid multi-paragraph strings for any single field. Keep each field as a single string.
+  - Preserve key details and the original voice as much as possible while being concise and following the targets above.
+  - Keep each field as a single string (no embedded newlines or multiple paragraphs).
   - If source information is missing for a required field, set it to an empty string ("") or an empty array as appropriate.
 
 Return only well-formed JSON that strictly follows the schema and constraints above.`;
