@@ -183,8 +183,8 @@ const GalleryView = () => {
                 {selectedEntry.scenes?.map((scene, idx) => (
                   <div key={idx} className="space-y-6">
                     {scene.image && (
-                      <div className="rounded-xl overflow-hidden shadow-2xl border border-white/5">
-                        <img src={`${baseUrl}${scene.image}`} alt="" className="w-full object-cover" />
+                      <div className="rounded-xl overflow-hidden shadow-2xl border border-white/5 max-h-96">
+                        <img src={`${baseUrl}${scene.image}`} alt="" className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className="flex gap-4">
@@ -357,7 +357,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
           canvas.toBlob(
             (blob) => resolve(blob),
             'image/jpeg',
-            0.95
+            1.0
           );
         };
         img.src = e.target.result;
