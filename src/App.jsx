@@ -183,8 +183,12 @@ const GalleryView = () => {
                 {selectedEntry.scenes?.map((scene, idx) => (
                   <div key={idx} className="space-y-6">
                     {scene.image && (
-                      <div className="rounded-xl overflow-hidden shadow-2xl border border-white/5 max-h-96">
-                        <img src={`${baseUrl}${scene.image}`} alt="" className="w-full h-full object-cover" />
+                      <div className="rounded-xl shadow-2xl border border-white/5 flex items-center justify-center p-4">
+                        <img
+                          src={`${baseUrl}${scene.image}`}
+                          alt=""
+                          className="max-h-96 w-auto max-w-full object-contain"
+                        />
                       </div>
                     )}
                     <div className="flex gap-4">
