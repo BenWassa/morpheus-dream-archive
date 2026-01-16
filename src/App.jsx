@@ -180,25 +180,45 @@ const GalleryView = () => {
               </h2>
 
               <div className="grid gap-12">
-                {selectedEntry.scenes?.map((scene, idx) => (
-                  <div key={idx} className="space-y-6">
-                    {scene.image && (
-                      <div className="rounded-xl shadow-2xl border border-white/5 flex items-center justify-center p-4">
-                        <img
-                          src={`${baseUrl}${scene.image}`}
-                          alt=""
-                          className="max-h-96 w-auto max-w-full object-contain"
-                        />
+                {selectedEntry.scenes?.map((scene, idx) => {
+                  const sceneNumber = String(idx + 1).padStart(2, '0');
+                  const hasImage = Boolean(scene.image);
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col gap-8 md:flex-row md:items-center ${
+                        idx % 2 !== 0 ? 'md:flex-row-reverse' : ''
+                      }`}
+                    >
+                      {hasImage && (
+                        <div className="relative w-full md:w-1/2 flex justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-r from-purple-500/30 via-cyan-400/20 to-purple-500/30 blur-3xl"></div>
+                          </div>
+                          <div className="relative z-10 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-center w-full">
+                            <img
+                              src={`${baseUrl}${scene.image}`}
+                              alt=""
+                              className="rounded-lg max-h-[500px] w-auto max-w-full object-contain mx-auto"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={`w-full ${hasImage ? 'md:w-1/2' : 'md:w-full'} flex md:items-center`}>
+                        <div className="space-y-4">
+                          <div className="font-mono text-xs tracking-[0.3em] text-cyan-300">
+                            {sceneNumber} // SCENE
+                          </div>
+                          <p className="text-sm text-slate-300 leading-relaxed font-light italic border-l-2 border-purple-500/50 pl-4">
+                            {truncateText(scene.text, 500)}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex gap-4">
-                      <span className="font-mono text-purple-400 text-sm pt-1">0{idx + 1}</span>
-                      <p className="text-sm text-slate-400 leading-relaxed font-light italic border-l-2 border-purple-500/50 pl-4">
-                        {truncateText(scene.text, 500)}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {selectedEntry.fragments?.length > 0 && (
