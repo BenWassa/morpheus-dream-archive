@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { Search, Plus, X, Upload, Download, Moon, Image as ImageIcon } from 'lucide-react';
+import { Plus, X, Download, Moon, Image as ImageIcon } from 'lucide-react';
 
 /* --- UI COMPONENTS --- */
 
@@ -56,6 +56,7 @@ const GalleryView = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const baseUrl = import.meta.env.BASE_URL || '/';
 
   useEffect(() => {
     loadEntries();
@@ -64,7 +65,7 @@ const GalleryView = () => {
   const loadEntries = async () => {
     try {
       // In Vite, public files are at root URL
-      const indexResponse = await fetch('/index.json');
+      const indexResponse = await fetch(`${baseUrl}index.json`);
       if (!indexResponse.ok) throw new Error('Could not load index');
 
       const indexData = await indexResponse.json();
@@ -72,7 +73,7 @@ const GalleryView = () => {
 
       for (const id of indexData.entries) {
         try {
-          const res = await fetch(`/entries/${id}.json`);
+          const res = await fetch(`${baseUrl}entries/${id}.json`);
           if (res.ok) {
             const data = await res.json();
             loadedEntries.push(data);
@@ -119,7 +120,7 @@ const GalleryView = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-500"></div>
                 {entry.scenes?.[0]?.image ? (
                   <img
-                    src={`/${entry.scenes[0].image}`}
+                    src={`${baseUrl}${entry.scenes[0].image}`}
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
                     alt="Dream visualization"
                   />
@@ -177,7 +178,7 @@ const GalleryView = () => {
                   <div key={idx} className="space-y-6">
                     {scene.image && (
                       <div className="rounded-xl overflow-hidden shadow-2xl border border-white/5">
-                        <img src={`/${scene.image}`} alt="" className="w-full object-cover" />
+                        <img src={`${baseUrl}${scene.image}`} alt="" className="w-full object-cover" />
                       </div>
                     )}
                     <div className="flex gap-4">
@@ -232,7 +233,7 @@ const AddEntryForm = () => {
       setFormData({
         originalTranscription: parsed.originalTranscription || '',
         summary: parsed.summary || '',
-        keywords: Array.isArray(parsed.keywords) ? parsed.keywords.join(', ') : parsed.keywords,
+        keywords: Array.isArray(parsed.keywords) ? parsed.keywords.join(', ') : parsed.keywords || '',
         scenes: parsed.scenes || [],
         fragments: Array.isArray(parsed.fragments) ? parsed.fragments.join('\n') : parsed.fragments,
       });
