@@ -4,12 +4,9 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
-      // Use Babel parser for reliable JSX parsing
-      parser: require('@babel/eslint-parser'),
       parserOptions: {
-        requireConfigFile: false,
-        babelOptions: {
-          presets: [require.resolve('@babel/preset-react')],
+        ecmaFeatures: {
+          jsx: true,
         },
       },
     },
