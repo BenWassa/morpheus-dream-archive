@@ -358,6 +358,22 @@
             const [errors, setErrors] = useState([]);
             const [successMessage, setSuccessMessage] = useState('');
             const fileInputRefs = useRef([]);
+            const [mode, setMode] = useState('manual'); // 'manual' or 'paste'
+            const [pasteJsonText, setPasteJsonText] = useState('');
+            const [parsedFromJson, setParsedFromJson] = useState(false);
+            const [parseErrors, setParseErrors] = useState([]);
+
+            const SAMPLE_JSON = `{
+    "date": "2026-01-15",
+    "originalTranscription": "I was in a house by the sea...",
+    "summary": "A short summary of the dream.",
+    "keywords": ["sea", "house", "childhood"],
+    "scenes": [
+        { "text": "Standing on the cliff, wind in hair." },
+        { "text": "Running through an empty hallway." }
+    ],
+    "fragments": ["blue light", "old friend"]
+}`;
 
             const addScene = () => {
                 setScenes([...scenes, { text: '', image: null, imagePreview: null }]);
@@ -506,6 +522,88 @@
                 setFragments('');
                 setErrors([]);
                 fileInputRefs.current = [];
+                setMode('manual');
+                setPasteJsonText('');
+                setParsedFromJson(false);
+                setParseErrors([]);
+            };
+
+            const loadSampleJson = () => {
+                setPasteJsonText(SAMPLE_JSON);
+            };
+
+            const parsePasteJson = () => {
+                setParseErrors([]);
+                try {
+                    const parsed = JSON.parse(pasteJsonText);
+                    const newErrors = [];
+
+                    // Date
+                    if (parsed.date) {
+                        setDate(parsed.date);
+                    } else {
+                        // default to today if missing
+                        setDate(new Date().toISOString().split('T')[0]);
+                        newErrors.push('Date missing in JSON — defaulted to today');
+                    }
+
+                    // Original transcription
+                    if (parsed.originalTranscription) {
+                        setOriginalTranscription(parsed.originalTranscription);
+                    } else {
+                        setOriginalTranscription('');
+                        newErrors.push('originalTranscription missing in JSON');
+                    }
+
+                    // Summary
+                    if (parsed.summary) {
+                        setSummary(parsed.summary);
+                    } else {
+                        setSummary('');
+                        newErrors.push('summary missing in JSON');
+                    }
+
+                    // Keywords can be array or comma string
+                    if (parsed.keywords) {
+                        if (Array.isArray(parsed.keywords)) {
+                            setKeywords(parsed.keywords.join(', '));
+                        } else if (typeof parsed.keywords === 'string') {
+                            setKeywords(parsed.keywords);
+                        } else {
+                            setKeywords('');
+                            newErrors.push('keywords format not recognized (use array or string)');
+                        }
+                    } else {
+                        setKeywords('');
+                        newErrors.push('keywords missing in JSON');
+                    }
+
+                    // Scenes - accept array of strings or array of objects with text
+                    if (parsed.scenes && Array.isArray(parsed.scenes) && parsed.scenes.length > 0) {
+                        const newScenes = parsed.scenes.map(s => {
+                            if (typeof s === 'string') return { text: s, image: null, imagePreview: null };
+                            if (s && typeof s.text === 'string') return { text: s.text, image: null, imagePreview: null };
+                            return { text: '', image: null, imagePreview: null };
+                        });
+                        setScenes(newScenes);
+                    } else {
+                        setScenes([{ text: '', image: null, imagePreview: null }]);
+                        newErrors.push('scenes missing or empty in JSON');
+                    }
+
+                    // Fragments
+                    if (parsed.fragments && Array.isArray(parsed.fragments)) {
+                        setFragments(parsed.fragments.join('\n'));
+                    } else {
+                        setFragments('');
+                    }
+
+                    setParsedFromJson(true);
+                    setMode('paste');
+                    setParseErrors(newErrors);
+                } catch (err) {
+                    setParseErrors([`JSON parse error: ${err.message}`]);
+                }
             };
 
             return (
@@ -528,6 +626,54 @@
                     )}
 
                     <div className="space-y-6">
+                        <div className="flex gap-2 items-center">
+                            <button
+                                onClick={() => { setMode('manual'); setParsedFromJson(false); setParseErrors([]); }}
+                                className={`px-4 py-2 rounded font-medium transition-colors ${
+                                    mode === 'manual' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Manual Entry
+                            </button>
+                            <button
+                                onClick={() => { setMode('paste'); }}
+                                className={`px-4 py-2 rounded font-medium transition-colors ${
+                                    mode === 'paste' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Paste JSON
+                            </button>
+                        </div>
+
+                        {mode === 'paste' && (
+                            <div className="p-4 bg-gray-50 border border-gray-200 rounded">
+                                <p className="text-sm text-gray-600 mb-2">Paste the JSON generated by ChatGPT (follow the template). Fields will be parsed and become readonly; upload images for each scene below.</p>
+
+                                <div className="mb-3">
+                                    <textarea
+                                        rows={8}
+                                        value={pasteJsonText}
+                                        onChange={(e) => setPasteJsonText(e.target.value)}
+                                        placeholder="Paste ChatGPT JSON here..."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button onClick={parsePasteJson} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Parse Dream</button>
+                                    <button onClick={loadSampleJson} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Load Sample JSON</button>
+                                    <button onClick={() => { setPasteJsonText(''); setParseErrors([]); }} className="px-4 py-2 bg-red-50 text-red-700 rounded hover:bg-red-100">Clear</button>
+                                </div>
+
+                                {parseErrors.length > 0 && (
+                                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                                        {parseErrors.map((pe, i) => (
+                                            <p key={i} className="text-sm text-yellow-800">{pe}</p>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Date *
@@ -537,6 +683,8 @@
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly={parsedFromJson}
+                                disabled={parsedFromJson}
                             />
                         </div>
 
@@ -550,6 +698,8 @@
                                 rows={8}
                                 placeholder="Paste the raw voice transcription here..."
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly={parsedFromJson}
+                                disabled={parsedFromJson}
                             />
                         </div>
 
@@ -563,6 +713,8 @@
                                 rows={3}
                                 placeholder="2-3 sentence summary of the dream..."
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly={parsedFromJson}
+                                disabled={parsedFromJson}
                             />
                         </div>
 
@@ -576,6 +728,8 @@
                                 onChange={(e) => setKeywords(e.target.value)}
                                 placeholder="water, childhood, anxiety, father"
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly={parsedFromJson}
+                                disabled={parsedFromJson}
                             />
                             <p className="text-xs text-gray-500 mt-1">Comma-separated keywords</p>
                         </div>
@@ -585,12 +739,14 @@
                                 <label className="block text-sm font-medium text-gray-700">
                                     Scenes * (minimum 1)
                                 </label>
-                                <button
-                                    onClick={addScene}
-                                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-                                >
-                                    + Add Scene
-                                </button>
+                                {!parsedFromJson && (
+                                    <button
+                                        onClick={addScene}
+                                        className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                                    >
+                                        + Add Scene
+                                    </button>
+                                )}
                             </div>
 
                             {scenes.map((scene, index) => (
@@ -613,6 +769,8 @@
                                         rows={3}
                                         placeholder="Describe this scene..."
                                         className="w-full px-3 py-2 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        readOnly={parsedFromJson}
+                                        disabled={parsedFromJson}
                                     />
 
                                     <div>
