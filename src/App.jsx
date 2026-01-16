@@ -332,6 +332,40 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
     }
   };
 
+  // Resize image using canvas for optimal file size
+  const resizeImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxWidth = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = (maxWidth / width) * height;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => resolve(blob),
+            'image/jpeg',
+            0.75
+          );
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const generateZip = async () => {
     const zip = new JSZip();
 
@@ -344,19 +378,19 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
       scenes: scenes.map((s, i) => ({
         text: s.text,
         image: s.image
-          ? `images/${date}-${String(i + 1).padStart(2, '0')}.${s.image.name.split('.').pop()}`
+          ? `images/${date}-${String(i + 1).padStart(2, '0')}.jpg`
           : null,
       })),
     };
 
     zip.file(`entries/${date}.json`, JSON.stringify(finalData, null, 2));
 
-    // Add images
+    // Add images (resized for optimized file size)
     for (let i = 0; i < scenes.length; i++) {
       if (scenes[i].image) {
-        const ext = scenes[i].image.name.split('.').pop();
-        const filename = `images/${date}-${String(i + 1).padStart(2, '0')}.${ext}`;
-        zip.file(filename, scenes[i].image);
+        const resizedBlob = await resizeImage(scenes[i].image);
+        const filename = `images/${date}-${String(i + 1).padStart(2, '0')}.jpg`;
+        zip.file(filename, resizedBlob);
       }
     }
 
