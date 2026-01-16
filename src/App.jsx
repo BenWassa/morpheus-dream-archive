@@ -193,7 +193,7 @@ const GalleryView = () => {
                     )}
                     <div className="flex gap-4">
                       <span className="font-mono text-purple-400 text-sm pt-1">0{idx + 1}</span>
-                      <p className="text-lg text-slate-300 leading-relaxed font-light">
+                      <p className="text-sm text-slate-400 leading-relaxed font-light italic border-l-2 border-purple-500/50 pl-4">
                         {truncateText(scene.text, 500)}
                       </p>
                     </div>
