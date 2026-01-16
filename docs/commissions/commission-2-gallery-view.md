@@ -18,13 +18,13 @@ export default function GalleryView() {
   const loadEntries = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const indexResponse = await fetch('./index.json');
       if (!indexResponse.ok) {
         throw new Error('Could not load index.json');
       }
-      
+
       const indexData = await indexResponse.json();
       const entryIds = indexData.entries || [];
 
@@ -55,10 +55,10 @@ export default function GalleryView() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -66,20 +66,20 @@ export default function GalleryView() {
     let filtered = entries;
 
     if (filterKeyword) {
-      filtered = filtered.filter(entry => 
-        entry.keywords && entry.keywords.some(k => 
-          k.toLowerCase() === filterKeyword.toLowerCase()
-        )
+      filtered = filtered.filter(
+        (entry) =>
+          entry.keywords &&
+          entry.keywords.some((k) => k.toLowerCase() === filterKeyword.toLowerCase())
       );
     }
 
     if (searchText) {
       const searchLower = searchText.toLowerCase();
-      filtered = filtered.filter(entry => {
+      filtered = filtered.filter((entry) => {
         const summaryMatch = entry.summary && entry.summary.toLowerCase().includes(searchLower);
-        const sceneMatch = entry.scenes && entry.scenes.some(scene => 
-          scene.text.toLowerCase().includes(searchLower)
-        );
+        const sceneMatch =
+          entry.scenes &&
+          entry.scenes.some((scene) => scene.text.toLowerCase().includes(searchLower));
         return summaryMatch || sceneMatch;
       });
     }
@@ -106,9 +106,9 @@ export default function GalleryView() {
 
   const getAllKeywords = () => {
     const keywordSet = new Set();
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.keywords) {
-        entry.keywords.forEach(k => keywordSet.add(k));
+        entry.keywords.forEach((k) => keywordSet.add(k));
       }
     });
     return Array.from(keywordSet).sort();
@@ -133,7 +133,7 @@ export default function GalleryView() {
       <div className="max-w-7xl mx-auto p-6">
         <div className="bg-red-50 border border-red-200 rounded p-6 text-center">
           <p className="text-red-700">Error loading dream archive: {error}</p>
-          <button 
+          <button
             onClick={loadEntries}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
@@ -160,9 +160,7 @@ export default function GalleryView() {
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {formatDate(selectedEntry.date)}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">{formatDate(selectedEntry.date)}</h2>
               <button
                 onClick={closeDetail}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -194,20 +192,21 @@ export default function GalleryView() {
 
               <div className="space-y-8">
                 <h3 className="text-lg font-semibold text-gray-700">Scenes</h3>
-                {selectedEntry.scenes && selectedEntry.scenes.map((scene, i) => (
-                  <div key={i} className="space-y-3">
-                    <img
-                      src={`./${scene.image}`}
-                      alt={`Scene ${i + 1}`}
-                      className="w-full rounded-lg shadow-md"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        console.error(`Failed to load image: ${scene.image}`);
-                      }}
-                    />
-                    <p className="text-gray-700 leading-relaxed">{scene.text}</p>
-                  </div>
-                ))}
+                {selectedEntry.scenes &&
+                  selectedEntry.scenes.map((scene, i) => (
+                    <div key={i} className="space-y-3">
+                      <img
+                        src={`./${scene.image}`}
+                        alt={`Scene ${i + 1}`}
+                        className="w-full rounded-lg shadow-md"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          console.error(`Failed to load image: ${scene.image}`);
+                        }}
+                      />
+                      <p className="text-gray-700 leading-relaxed">{scene.text}</p>
+                    </div>
+                  ))}
               </div>
 
               {selectedEntry.fragments && selectedEntry.fragments.length > 0 && (
@@ -215,7 +214,9 @@ export default function GalleryView() {
                   <h3 className="text-lg font-semibold text-gray-700 mb-3">Fragments</h3>
                   <ul className="space-y-2">
                     {selectedEntry.fragments.map((fragment, i) => (
-                      <li key={i} className="text-gray-600 italic">• {fragment}</li>
+                      <li key={i} className="text-gray-600 italic">
+                        • {fragment}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -294,12 +295,10 @@ export default function GalleryView() {
                   />
                 </div>
               )}
-              
+
               <div className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  {formatDate(entry.date)}
-                </h3>
-                
+                <h3 className="font-semibold text-gray-800 mb-2">{formatDate(entry.date)}</h3>
+
                 {entry.keywords && entry.keywords.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
                     {entry.keywords.slice(0, 3).map((keyword, i) => (
@@ -316,11 +315,9 @@ export default function GalleryView() {
                     ))}
                   </div>
                 )}
-                
+
                 {entry.summary && (
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {entry.summary}
-                  </p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{entry.summary}</p>
                 )}
               </div>
             </div>

@@ -77,7 +77,9 @@ const GalleryView = () => {
             const data = await res.json();
             loadedEntries.push(data);
           }
-        } catch (e) { console.warn(e); }
+        } catch (e) {
+          console.warn(e);
+        }
       }
 
       loadedEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -94,7 +96,8 @@ const GalleryView = () => {
       <div className="mb-16">
         <h1 className="text-5xl md:text-7xl font-light mb-6">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-500">
-            The subconscious<br/> archive.
+            The subconscious
+            <br /> archive.
           </span>
         </h1>
       </div>
@@ -129,7 +132,10 @@ const GalleryView = () => {
                 <div className="absolute bottom-0 left-0 p-8 z-20 w-full">
                   <div className="flex flex-wrap gap-2 mb-3 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                     {entry.keywords?.slice(0, 3).map((k, j) => (
-                      <span key={j} className="text-[10px] backdrop-blur-md bg-white/10 px-2 py-1 rounded-full border border-white/20 text-cyan-100">
+                      <span
+                        key={j}
+                        className="text-[10px] backdrop-blur-md bg-white/10 px-2 py-1 rounded-full border border-white/20 text-cyan-100"
+                      >
                         {k}
                       </span>
                     ))}
@@ -215,7 +221,7 @@ const AddEntryForm = () => {
     summary: '',
     keywords: '',
     scenes: [],
-    fragments: ''
+    fragments: '',
   });
   const [scenes, setScenes] = useState([]); // Separate for image handling
   const [error, setError] = useState('');
@@ -228,14 +234,14 @@ const AddEntryForm = () => {
         summary: parsed.summary || '',
         keywords: Array.isArray(parsed.keywords) ? parsed.keywords.join(', ') : parsed.keywords,
         scenes: parsed.scenes || [],
-        fragments: Array.isArray(parsed.fragments) ? parsed.fragments.join('\n') : parsed.fragments
+        fragments: Array.isArray(parsed.fragments) ? parsed.fragments.join('\n') : parsed.fragments,
       });
 
       // Initialize scene images structure
-      const newScenes = (parsed.scenes || []).map(text => ({
+      const newScenes = (parsed.scenes || []).map((text) => ({
         text: typeof text === 'string' ? text : text.text,
         image: null,
-        preview: null
+        preview: null,
       }));
       setScenes(newScenes);
 
@@ -267,12 +273,14 @@ const AddEntryForm = () => {
     const finalData = {
       date,
       ...formData,
-      keywords: formData.keywords.split(',').map(k => k.trim()),
-      fragments: formData.fragments.split('\n').filter(f => f.trim()),
+      keywords: formData.keywords.split(',').map((k) => k.trim()),
+      fragments: formData.fragments.split('\n').filter((f) => f.trim()),
       scenes: scenes.map((s, i) => ({
         text: s.text,
-        image: s.image ? `images/${date}-${String(i+1).padStart(2, '0')}.${s.image.name.split('.').pop()}` : null
-      }))
+        image: s.image
+          ? `images/${date}-${String(i + 1).padStart(2, '0')}.${s.image.name.split('.').pop()}`
+          : null,
+      })),
     };
 
     zip.file(`entries/${date}.json`, JSON.stringify(finalData, null, 2));
@@ -281,7 +289,7 @@ const AddEntryForm = () => {
     for (let i = 0; i < scenes.length; i++) {
       if (scenes[i].image) {
         const ext = scenes[i].image.name.split('.').pop();
-        const filename = `images/${date}-${String(i+1).padStart(2, '0')}.${ext}`;
+        const filename = `images/${date}-${String(i + 1).padStart(2, '0')}.${ext}`;
         zip.file(filename, scenes[i].image);
       }
     }
@@ -301,13 +309,13 @@ const AddEntryForm = () => {
               <Download size={18} /> Step 1: Structure Dream
             </h3>
             <p className="text-slate-400 text-sm mb-4">
-              Paste your raw voice transcription into ChatGPT with the system prompt.
-              Paste the resulting JSON below.
+              Paste your raw voice transcription into ChatGPT with the system prompt. Paste the
+              resulting JSON below.
             </p>
             <textarea
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
-              placeholder='Paste JSON here...'
+              placeholder="Paste JSON here..."
               className="w-full bg-[#0f172a] border border-white/10 rounded-lg p-4 text-sm font-mono text-slate-300 h-64 focus:ring-2 focus:ring-purple-500 outline-none"
             />
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
@@ -325,40 +333,58 @@ const AddEntryForm = () => {
         <div className="space-y-8 animate-fade-in">
           <div className="bg-slate-900/50 border border-white/10 rounded-xl p-6">
             <div className="flex justify-between items-center mb-6">
-               <h3 className="text-xl text-white font-display">Review & Assets</h3>
-               <button onClick={() => setIsParsed(false)} className="text-sm text-slate-400 hover:text-white">Reset</button>
+              <h3 className="text-xl text-white font-display">Review & Assets</h3>
+              <button
+                onClick={() => setIsParsed(false)}
+                className="text-sm text-slate-400 hover:text-white"
+              >
+                Reset
+              </button>
             </div>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-slate-500 text-xs uppercase tracking-wider mb-2">Date</label>
+                <label className="block text-slate-500 text-xs uppercase tracking-wider mb-2">
+                  Date
+                </label>
                 <input
                   type="date"
                   value={date}
-                  onChange={e => setDate(e.target.value)}
+                  onChange={(e) => setDate(e.target.value)}
                   className="bg-[#0f172a] border border-white/10 rounded px-4 py-2 text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-500 text-xs uppercase tracking-wider mb-2">Summary</label>
-                <div className="text-slate-300 bg-white/5 p-4 rounded-lg text-sm leading-relaxed">{formData.summary}</div>
+                <label className="block text-slate-500 text-xs uppercase tracking-wider mb-2">
+                  Summary
+                </label>
+                <div className="text-slate-300 bg-white/5 p-4 rounded-lg text-sm leading-relaxed">
+                  {formData.summary}
+                </div>
               </div>
 
               <div className="space-y-6">
-                <label className="block text-slate-500 text-xs uppercase tracking-wider">Visuals</label>
+                <label className="block text-slate-500 text-xs uppercase tracking-wider">
+                  Visuals
+                </label>
                 {scenes.map((scene, idx) => (
                   <div key={idx} className="bg-black/20 rounded-lg p-4 border border-white/5">
                     <p className="text-slate-300 text-sm mb-4">{scene.text}</p>
                     <div className="flex items-center gap-4">
                       <label className="cursor-pointer flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm text-white transition-colors">
                         <ImageIcon size={16} /> Upload Scene {idx + 1}
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(idx, e)} />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(idx, e)}
+                        />
                       </label>
                       {scene.preview && (
-                         <div className="h-16 w-16 rounded overflow-hidden border border-white/20">
-                           <img src={scene.preview} className="h-full w-full object-cover" />
-                         </div>
+                        <div className="h-16 w-16 rounded overflow-hidden border border-white/20">
+                          <img src={scene.preview} className="h-full w-full object-cover" />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -393,9 +419,7 @@ function App() {
       <Background />
       <Header currentView={currentView} setCurrentView={setCurrentView} />
 
-      <main>
-        {currentView === 'gallery' ? <GalleryView /> : <AddEntryForm />}
-      </main>
+      <main>{currentView === 'gallery' ? <GalleryView /> : <AddEntryForm />}</main>
     </div>
   );
 }
