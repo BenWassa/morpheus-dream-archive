@@ -4,8 +4,9 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
-      ecmaFeatures: {
-        jsx: true,
+      parserOptions: {
+        ecmaVersion: 2021,
+        sourceType: 'module',
       },
     },
     plugins: {
