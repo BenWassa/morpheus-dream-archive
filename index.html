@@ -349,262 +349,353 @@
 
         // Add Entry Form Component
         function AddEntryForm() {
-            const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-            const [originalTranscription, setOriginalTranscription] = useState('');
-            const [summary, setSummary] = useState('');
-            const [keywords, setKeywords] = useState('');
-            const [scenes, setScenes] = useState([{ text: '', image: null, imagePreview: null }]);
-            const [fragments, setFragments] = useState('');
-            const [errors, setErrors] = useState([]);
-            const [successMessage, setSuccessMessage] = useState('');
-            const fileInputRefs = useRef([]);
-            const [mode, setMode] = useState('manual'); // 'manual' or 'paste'
-            const [pasteJsonText, setPasteJsonText] = useState('');
-            const [parsedFromJson, setParsedFromJson] = useState(false);
-            const [parseErrors, setParseErrors] = useState([]);
+                const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+                const [originalTranscription, setOriginalTranscription] = useState('');
+                const [summary, setSummary] = useState('');
+                const [keywords, setKeywords] = useState('');
+                const [scenes, setScenes] = useState([{ text: '', image: null, imagePreview: null }]);
+                const [fragments, setFragments] = useState('');
+                const [errors, setErrors] = useState([]);
+                const [successMessage, setSuccessMessage] = useState('');
+                const fileInputRefs = useRef([]);
+                const [jsonText, setJsonText] = useState('');
+                const [isParsed, setIsParsed] = useState(false);
 
-            const SAMPLE_JSON = `{
-    "date": "2026-01-15",
-    "originalTranscription": "I was in a house by the sea...",
-    "summary": "A short summary of the dream.",
-    "keywords": ["sea", "house", "childhood"],
-    "scenes": [
-        { "text": "Standing on the cliff, wind in hair." },
-        { "text": "Running through an empty hallway." }
-    ],
-    "fragments": ["blue light", "old friend"]
+                const SAMPLE_JSON = `{
+        "date": "2026-01-15",
+        "originalTranscription": "I was in a house by the sea...",
+        "summary": "A short summary of the dream.",
+        "keywords": ["sea", "house", "childhood"],
+        "scenes": [
+                { "text": "Standing on the cliff, wind in hair." },
+                { "text": "Running through an empty hallway." }
+        ],
+        "fragments": ["blue light", "old friend"]
 }`;
 
-            const addScene = () => {
-                setScenes([...scenes, { text: '', image: null, imagePreview: null }]);
-            };
-
-            const removeScene = (index) => {
-                if (scenes.length > 1) {
-                    const newScenes = scenes.filter((_, i) => i !== index);
-                    setScenes(newScenes);
-                    fileInputRefs.current = fileInputRefs.current.filter((_, i) => i !== index);
-                }
-            };
-
-            const updateSceneText = (index, text) => {
-                const newScenes = [...scenes];
-                newScenes[index].text = text;
-                setScenes(newScenes);
-            };
-
-            const handleImageUpload = (index, e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const newScenes = [...scenes];
-                        newScenes[index].image = file;
-                        newScenes[index].imagePreview = event.target.result;
-                        setScenes(newScenes);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-
-            const validateForm = () => {
-                const newErrors = [];
-
-                if (!date) {
-                    newErrors.push('Date is required');
-                }
-
-                if (scenes.length === 0) {
-                    newErrors.push('At least one scene is required');
-                }
-
-                let hasValidScene = false;
-                scenes.forEach((scene, index) => {
-                    if (scene.text && scene.image) {
-                        hasValidScene = true;
-                    } else if (scene.text || scene.image) {
-                        newErrors.push(`Scene ${index + 1}: Both text and image are required`);
-                    }
-                });
-
-                if (!hasValidScene) {
-                    newErrors.push('At least one scene must have both text and image');
-                }
-
-                if (!summary) {
-                    newErrors.push('Warning: Summary is empty (recommended to add one)');
-                }
-
-                setErrors(newErrors);
-                return newErrors.length === 0 || (newErrors.length === 1 && newErrors[0].includes('Warning'));
-            };
-
-            const generateFiles = async () => {
-                setErrors([]);
-                setSuccessMessage('');
-
-                if (!validateForm()) {
-                    return;
-                }
-
-                try {
-                    const JSZip = window.JSZip;
-                    const zip = new JSZip();
-
-                    const keywordsArray = keywords
-                        .split(',')
-                        .map(k => k.trim())
-                        .filter(k => k.length > 0);
-
-                    const fragmentsArray = fragments
-                        .split('\n')
-                        .map(f => f.trim())
-                        .filter(f => f.length > 0);
-
-                    const validScenes = scenes.filter(scene => scene.text && scene.image);
-
-                    const jsonData = {
-                        date: date,
-                        originalTranscription: originalTranscription,
-                        summary: summary,
-                        keywords: keywordsArray,
-                        scenes: validScenes.map((scene, index) => {
-                            const extension = scene.image.name.split('.').pop();
-                            const sceneNumber = String(index + 1).padStart(2, '0');
-                            return {
-                                text: scene.text,
-                                image: `images/${date}-${sceneNumber}.${extension}`
-                            };
-                        }),
-                        fragments: fragmentsArray
-                    };
-
-                    zip.file(`entries/${date}.json`, JSON.stringify(jsonData, null, 2));
-
-                    for (let i = 0; i < validScenes.length; i++) {
-                        const scene = validScenes[i];
-                        const extension = scene.image.name.split('.').pop();
-                        const sceneNumber = String(i + 1).padStart(2, '0');
-                        const fileName = `images/${date}-${sceneNumber}.${extension}`;
-            
-                        const imageData = await new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = (e) => resolve(e.target.result);
-                            reader.onerror = reject;
-                            reader.readAsArrayBuffer(scene.image);
-                        });
-
-                        zip.file(fileName, imageData);
-                    }
-
-                    const content = await zip.generateAsync({ type: 'blob' });
-          
-                    const saveAs = window.saveAs;
-                    saveAs(content, `dream-${date}.zip`);
-
-                    setSuccessMessage(`Add this to index.json at the top of the "entries" array:\n"${date}",`);
-
-                    setTimeout(() => {
-                        clearForm();
-                    }, 5000);
-
-                } catch (error) {
-                    setErrors([`Error generating files: ${error.message}`]);
-                }
-            };
-
-            const clearForm = () => {
-                setDate(new Date().toISOString().split('T')[0]);
-                setOriginalTranscription('');
-                setSummary('');
-                setKeywords('');
-                setScenes([{ text: '', image: null, imagePreview: null }]);
-                setFragments('');
-                setErrors([]);
-                fileInputRefs.current = [];
-                setMode('manual');
-                setPasteJsonText('');
-                setParsedFromJson(false);
-                setParseErrors([]);
-            };
-
-            const loadSampleJson = () => {
-                setPasteJsonText(SAMPLE_JSON);
-            };
-
-            const parsePasteJson = () => {
-                setParseErrors([]);
-                try {
-                    const parsed = JSON.parse(pasteJsonText);
-                    const newErrors = [];
-
-                    // Date
-                    if (parsed.date) {
-                        setDate(parsed.date);
-                    } else {
-                        // default to today if missing
-                        setDate(new Date().toISOString().split('T')[0]);
-                        newErrors.push('Date missing in JSON — defaulted to today');
-                    }
-
-                    // Original transcription
-                    if (parsed.originalTranscription) {
-                        setOriginalTranscription(parsed.originalTranscription);
-                    } else {
-                        setOriginalTranscription('');
-                        newErrors.push('originalTranscription missing in JSON');
-                    }
-
-                    // Summary
-                    if (parsed.summary) {
-                        setSummary(parsed.summary);
-                    } else {
-                        setSummary('');
-                        newErrors.push('summary missing in JSON');
-                    }
-
-                    // Keywords can be array or comma string
-                    if (parsed.keywords) {
-                        if (Array.isArray(parsed.keywords)) {
-                            setKeywords(parsed.keywords.join(', '));
-                        } else if (typeof parsed.keywords === 'string') {
-                            setKeywords(parsed.keywords);
-                        } else {
-                            setKeywords('');
-                            newErrors.push('keywords format not recognized (use array or string)');
+                const parseJson = () => {
+                        setErrors([]);
+                        try {
+                                const parsed = JSON.parse(jsonText);
+                
+                                if (parsed.date) setDate(parsed.date);
+                                setOriginalTranscription(parsed.originalTranscription || '');
+                                setSummary(parsed.summary || '');
+                
+                                if (Array.isArray(parsed.keywords)) {
+                                        setKeywords(parsed.keywords.join(', '));
+                                } else if (typeof parsed.keywords === 'string') {
+                                        setKeywords(parsed.keywords);
+                                }
+                
+                                if (parsed.scenes && Array.isArray(parsed.scenes)) {
+                                        const newScenes = parsed.scenes.map(scene => ({
+                                                text: typeof scene === 'string' ? scene : (scene.text || ''),
+                                                image: null,
+                                                imagePreview: null
+                                        }));
+                                        setScenes(newScenes);
+                                }
+                
+                                if (parsed.fragments && Array.isArray(parsed.fragments)) {
+                                        setFragments(parsed.fragments.join('\n'));
+                                }
+                
+                                setIsParsed(true);
+                        } catch (error) {
+                                setErrors([`Failed to parse JSON: ${error.message}`]);
                         }
-                    } else {
-                        setKeywords('');
-                        newErrors.push('keywords missing in JSON');
-                    }
+                };
 
-                    // Scenes - accept array of strings or array of objects with text
-                    if (parsed.scenes && Array.isArray(parsed.scenes) && parsed.scenes.length > 0) {
-                        const newScenes = parsed.scenes.map(s => {
-                            if (typeof s === 'string') return { text: s, image: null, imagePreview: null };
-                            if (s && typeof s.text === 'string') return { text: s.text, image: null, imagePreview: null };
-                            return { text: '', image: null, imagePreview: null };
+                const handleImageUpload = (index, e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                        const newScenes = [...scenes];
+                                        newScenes[index].image = file;
+                                        newScenes[index].imagePreview = event.target.result;
+                                        setScenes(newScenes);
+                                };
+                                reader.readAsDataURL(file);
+                        }
+                };
+
+                const validateForm = () => {
+                        const newErrors = [];
+                        if (!date) newErrors.push('Date is required');
+            
+                        let hasValidScene = false;
+                        scenes.forEach((scene, index) => {
+                                if (scene.text && scene.image) {
+                                        hasValidScene = true;
+                                } else if (scene.text || scene.image) {
+                                        newErrors.push(`Scene ${index + 1}: Both text and image are required`);
+                                }
                         });
-                        setScenes(newScenes);
-                    } else {
+
+                        if (!hasValidScene) {
+                                newErrors.push('At least one scene must have both text and image');
+                        }
+
+                        setErrors(newErrors);
+                        return newErrors.length === 0;
+                };
+
+                const generateFiles = async () => {
+                        setErrors([]);
+                        setSuccessMessage('');
+
+                        if (!validateForm()) return;
+
+                        try {
+                                const JSZip = window.JSZip;
+                                const zip = new JSZip();
+
+                                const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+                                const fragmentsArray = fragments.split('\n').map(f => f.trim()).filter(f => f.length > 0);
+                                const validScenes = scenes.filter(scene => scene.text && scene.image);
+
+                                const jsonData = {
+                                        date: date,
+                                        originalTranscription: originalTranscription,
+                                        summary: summary,
+                                        keywords: keywordsArray,
+                                        scenes: validScenes.map((scene, index) => {
+                                                const extension = scene.image.name.split('.').pop();
+                                                const sceneNumber = String(index + 1).padStart(2, '0');
+                                                return {
+                                                        text: scene.text,
+                                                        image: `images/${date}-${sceneNumber}.${extension}`
+                                                };
+                                        }),
+                                        fragments: fragmentsArray
+                                };
+
+                                zip.file(`entries/${date}.json`, JSON.stringify(jsonData, null, 2));
+
+                                for (let i = 0; i < validScenes.length; i++) {
+                                        const scene = validScenes[i];
+                                        const extension = scene.image.name.split('.').pop();
+                                        const sceneNumber = String(i + 1).padStart(2, '0');
+                                        const fileName = `images/${date}-${sceneNumber}.${extension}`;
+    
+                                        const imageData = await new Promise((resolve, reject) => {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => resolve(e.target.result);
+                                                reader.onerror = reject;
+                                                reader.readAsArrayBuffer(scene.image);
+                                        });
+
+                                        zip.file(fileName, imageData);
+                                }
+
+                                const content = await zip.generateAsync({ type: 'blob' });
+                                window.saveAs(content, `dream-${date}.zip`);
+
+                                setSuccessMessage(`Add this to index.json at the top of the "entries" array:\n"${date}",`);
+
+                                setTimeout(() => clearForm(), 5000);
+
+                        } catch (error) {
+                                setErrors([`Error generating files: ${error.message}`]);
+                        }
+                };
+
+                const clearForm = () => {
+                        setDate(new Date().toISOString().split('T')[0]);
+                        setOriginalTranscription('');
+                        setSummary('');
+                        setKeywords('');
                         setScenes([{ text: '', image: null, imagePreview: null }]);
-                        newErrors.push('scenes missing or empty in JSON');
-                    }
-
-                    // Fragments
-                    if (parsed.fragments && Array.isArray(parsed.fragments)) {
-                        setFragments(parsed.fragments.join('\n'));
-                    } else {
                         setFragments('');
-                    }
+                        setErrors([]);
+                        setSuccessMessage('');
+                        fileInputRefs.current = [];
+                        setJsonText('');
+                        setIsParsed(false);
+                };
 
-                    setParsedFromJson(true);
-                    setMode('paste');
-                    setParseErrors(newErrors);
-                } catch (err) {
-                    setParseErrors([`JSON parse error: ${err.message}`]);
-                }
-            };
+                const loadSampleJson = () => {
+                        setJsonText(SAMPLE_JSON);
+                };
+
+                return (
+                        <div className="max-w-4xl mx-auto p-6">
+                                {errors.length > 0 && (
+                                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                                                {errors.map((error, index) => (
+                                                        <p key={index} className="text-sm text-red-700">{error}</p>
+                                                ))}
+                                        </div>
+                                )}
+
+                                {successMessage && (
+                                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+                                                <p className="text-sm text-green-700 font-semibold">Success! Files generated.</p>
+                                                <p className="text-sm text-green-700 mt-2 whitespace-pre-wrap font-mono">{successMessage}</p>
+                                        </div>
+                                )}
+
+                                <div className="space-y-6">
+                                        {!isParsed ? (
+                                                <div className="space-y-4">
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                        Paste Dream JSON from ChatGPT
+                                                                </label>
+                                                                <textarea
+                                                                        value={jsonText}
+                                                                        onChange={(e) => setJsonText(e.target.value)}
+                                                                        rows={12}
+                                                                        placeholder="Paste your dream JSON here..."
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                                                />
+                                                        </div>
+                            
+                                                        <div className="flex gap-3">
+                                                                <button
+                                                                        onClick={parseJson}
+                                                                        className="px-6 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700"
+                                                                >
+                                                                        Parse Dream
+                                                                </button>
+                                                                <button
+                                                                        onClick={loadSampleJson}
+                                                                        className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded hover:bg-gray-300"
+                                                                >
+                                                                        Load Sample JSON
+                                                                </button>
+                                                        </div>
+
+                                                        <div className="p-4 bg-blue-50 border border-blue-200 rounded">
+                                                                <h3 className="font-semibold text-blue-900 mb-2">Expected JSON Format:</h3>
+                                                                <pre className="text-xs text-blue-800 font-mono overflow-x-auto">{SAMPLE_JSON}</pre>
+                                                        </div>
+                                                </div>
+                                        ) : (
+                                                <>
+                                                        <div className="p-4 bg-green-50 border border-green-200 rounded">
+                                                                <p className="text-sm text-green-700">✓ Dream parsed successfully! Fields are now read-only. Upload images for each scene below.</p>
+                                                                <button
+                                                                        onClick={() => {
+                                                                                setIsParsed(false);
+                                                                                setJsonText('');
+                                                                        }}
+                                                                        className="mt-2 text-sm text-green-700 underline hover:text-green-800"
+                                                                >
+                                                                        Start over with new JSON
+                                                                </button>
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                                                                <input
+                                                                        type="date"
+                                                                        value={date}
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                                                                        readOnly
+                                                                        disabled
+                                                                />
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">Original Transcription</label>
+                                                                <textarea
+                                                                        value={originalTranscription}
+                                                                        rows={8}
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                                                                        readOnly
+                                                                        disabled
+                                                                />
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">Summary</label>
+                                                                <textarea
+                                                                        value={summary}
+                                                                        rows={3}
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                                                                        readOnly
+                                                                        disabled
+                                                                />
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
+                                                                <input
+                                                                        type="text"
+                                                                        value={keywords}
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                                                                        readOnly
+                                                                        disabled
+                                                                />
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-4">
+                                                                        Scenes * - Upload images for each scene
+                                                                </label>
+
+                                                                {scenes.map((scene, index) => (
+                                                                        <div key={index} className="mb-6 p-4 border border-gray-200 rounded bg-white">
+                                                                                <h3 className="text-sm font-medium text-gray-700 mb-3">Scene {index + 1}</h3>
+
+                                                                                <div className="mb-3 p-3 bg-gray-50 rounded">
+                                                                                        <p className="text-sm text-gray-700">{scene.text}</p>
+                                                                                </div>
+
+                                                                                <div>
+                                                                                        <input
+                                                                                                type="file"
+                                                                                                accept="image/*"
+                                                                                                onChange={(e) => handleImageUpload(index, e)}
+                                                                                                ref={(el) => (fileInputRefs.current[index] = el)}
+                                                                                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                                                        />
+                                                                                        {scene.imagePreview && (
+                                                                                                <img
+                                                                                                        src={scene.imagePreview}
+                                                                                                        alt={`Scene ${index + 1} preview`}
+                                                                                                        className="mt-3 max-w-xs rounded border border-gray-300"
+                                                                                                />
+                                                                                        )}
+                                                                                </div>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+
+                                                        <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">Fragments (optional)</label>
+                                                                <textarea
+                                                                        value={fragments}
+                                                                        rows={4}
+                                                                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                                                                        readOnly
+                                                                        disabled
+                                                                />
+                                                        </div>
+
+                                                        <div className="flex gap-4">
+                                                                <button
+                                                                        onClick={generateFiles}
+                                                                        className="px-6 py-3 bg-green-600 text-white font-medium rounded hover:bg-green-700"
+                                                                >
+                                                                        Generate Entry Files
+                                                                </button>
+                                                                <button
+                                                                        onClick={clearForm}
+                                                                        className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded hover:bg-gray-300"
+                                                                >
+                                                                        Clear Form
+                                                                </button>
+                                                        </div>
+                                                </>
+                                        )}
+                                </div>
+                        </div>
+                );
+        }
 
             return (
                 <div className="max-w-4xl mx-auto p-6">
