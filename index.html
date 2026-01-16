@@ -768,15 +768,23 @@ Please organize this dream into JSON format for the Dream Archive webapp. **Impo
                                                 <>
                                                         <div className="p-4 bg-green-50 border border-green-200 rounded">
                                                                 <p className="text-sm text-green-700">✓ Dream parsed successfully! Fields are now read-only. Upload images for each scene below.</p>
-                                                                <button
-                                                                        onClick={() => {
-                                                                                setIsParsed(false);
-                                                                                setJsonText('');
-                                                                        }}
-                                                                        className="mt-2 text-sm text-green-700 underline hover:text-green-800"
-                                                                >
-                                                                        Start over with new JSON
-                                                                </button>
+                                                                <div className="mt-2 flex gap-4">
+                                                                        <button
+                                                                                onClick={() => {
+                                                                                        setIsParsed(false);
+                                                                                        setJsonText('');
+                                                                                }}
+                                                                                className="text-sm text-green-700 underline hover:text-green-800"
+                                                                        >
+                                                                                Start over with new JSON
+                                                                        </button>
+                                                                        <button
+                                                                                onClick={clearForm}
+                                                                                className="text-sm text-red-600 underline hover:text-red-800"
+                                                                        >
+                                                                                Reset Form (clear saved data)
+                                                                        </button>
+                                                                </div>
                                                         </div>
 
                                                         <div>
