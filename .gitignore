@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Editor directories
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+
+# Development
+node_modules/
+package-lock.json
+
+# Keep images and entries folders but ignore their contents during initial setup
+# Remove these lines once real content is added:
+# images/*
+# !images/.gitkeep
+# entries/*
+# !entries/.gitkeep
