@@ -184,7 +184,7 @@ const GalleryView = () => {
                     <div className="flex gap-4">
                       <span className="font-mono text-purple-400 text-sm pt-1">0{idx + 1}</span>
                       <p className="text-lg text-slate-300 leading-relaxed font-light">
-                        {scene.text}
+                        {truncateText(scene.text, 500)}
                       </p>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ const GalleryView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedEntry.fragments.map((frag, i) => (
                       <div key={i} className="bg-white/5 p-4 rounded-lg text-slate-400 text-sm">
-                        {frag}
+                        {truncateText(frag, 200)}
                       </div>
                     ))}
                   </div>
@@ -226,6 +226,12 @@ const AddEntryForm = () => {
   });
   const [scenes, setScenes] = useState([]); // Separate for image handling
   const [error, setError] = useState('');
+
+  // Utility function for text truncation
+  const truncateText = (text, maxLength) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+  };
 
   const parseJson = () => {
     try {
@@ -414,7 +420,7 @@ Guidelines:
                   Summary
                 </label>
                 <div className="text-slate-300 bg-white/5 p-4 rounded-lg text-sm leading-relaxed">
-                  {formData.summary}
+                  {truncateText(formData.summary, 300)}
                 </div>
               </div>
 
@@ -424,7 +430,7 @@ Guidelines:
                 </label>
                 {scenes.map((scene, idx) => (
                   <div key={idx} className="bg-black/20 rounded-lg p-4 border border-white/5">
-                    <p className="text-slate-300 text-sm mb-4">{scene.text}</p>
+                    <p className="text-slate-300 text-sm mb-4">{truncateText(scene.text, 150)}</p>
                     <div className="flex items-center gap-4">
                       <label className="cursor-pointer flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm text-white transition-colors">
                         <ImageIcon size={16} /> Upload Scene {idx + 1}
