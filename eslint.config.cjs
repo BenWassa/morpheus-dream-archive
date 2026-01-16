@@ -18,13 +18,8 @@ module.exports = [
         version: 'detect',
       },
     },
-    extends: [
-      'eslint:recommended',
-      'plugin:react/recommended',
-      'plugin:react/jsx-runtime',
-      'plugin:react-hooks/recommended',
-      'plugin:prettier/recommended',
-    ],
+    // Avoid using `extends` in a flat config. Enable a small set of base rules
+    // and rely on Prettier as an error via the plugin rule.
     rules: {
       'prettier/prettier': 'error',
     },
