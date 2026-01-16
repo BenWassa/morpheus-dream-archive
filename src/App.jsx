@@ -340,7 +340,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const maxWidth = 1200;
+          const maxWidth = 800;
           let width = img.width;
           let height = img.height;
 
@@ -357,7 +357,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
           canvas.toBlob(
             (blob) => resolve(blob),
             'image/jpeg',
-            0.75
+            0.6
           );
         };
         img.src = e.target.result;
