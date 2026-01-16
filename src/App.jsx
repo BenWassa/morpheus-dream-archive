@@ -196,7 +196,7 @@ const GalleryView = () => {
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-r from-purple-500/30 via-cyan-400/20 to-purple-500/30 blur-3xl"></div>
                           </div>
-                          <div className="relative z-10 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-center w-full">
+                          <div className="relative z-10 rounded-2xl shadow-2xl flex items-center justify-center w-full">
                             <img
                               src={`${baseUrl}${scene.image}`}
                               alt=""
