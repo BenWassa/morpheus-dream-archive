@@ -216,7 +216,7 @@ const GalleryView = () => {
                 {entry.scenes?.[0]?.image ? (
                   <SmartImage
                     src={`${baseUrl}${entry.scenes[0].image}`}
-                    className="w-full h-full object-cover opacity-60 group-hover:opacity-40 group-hover:scale-105 transition-all duration-700 ease-out grayscale group-hover:grayscale-0"
+                    className="w-full h-full object-cover opacity-100 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
                     alt="Dream visualization"
                   />
                 ) : (
@@ -224,7 +224,7 @@ const GalleryView = () => {
                     <Moon size={48} />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/50 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c]/70 via-[#0a0f1c]/25 to-transparent"></div>
               </div>
 
               <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end">
@@ -259,15 +259,15 @@ const GalleryView = () => {
       )}
 
       {selectedEntry && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-24 pb-6">
           <div
             className="absolute inset-0 bg-[#05080f]/95 backdrop-blur-xl animate-fade-in"
             onClick={() => setSelectedEntry(null)}
           ></div>
 
-          <div className="relative w-full h-full md:h-[95vh] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c] border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
-            <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex justify-between items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50">
-              <div className="flex items-center gap-6">
+          <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c] border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+            <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex flex-col md:flex-row md:justify-between md:items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50 gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
                 <div className="flex flex-col">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
                     Entry Date
@@ -275,7 +275,7 @@ const GalleryView = () => {
                   <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
                 </div>
                 <div className="hidden md:block w-px h-8 bg-white/10"></div>
-                <div className="hidden md:flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {selectedEntry.keywords?.map((k, j) => (
                     <span
                       key={j}
@@ -288,7 +288,7 @@ const GalleryView = () => {
               </div>
               <button
                 onClick={() => setSelectedEntry(null)}
-                className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
               >
                 <X size={24} className="text-slate-400 group-hover:text-white transition-colors" />
               </button>
@@ -300,7 +300,7 @@ const GalleryView = () => {
                   <span className="inline-block mb-6">
                     <Sparkles className="text-purple-500 animate-pulse-slow" size={32} />
                   </span>
-                  <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-light text-white leading-tight mb-8">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-light text-white leading-snug mb-8">
                     {selectedEntry.summary}
                   </h2>
                 </div>
