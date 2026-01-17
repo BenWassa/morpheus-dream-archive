@@ -14,7 +14,8 @@ import {
   Calendar,
   ArrowRight,
 } from 'lucide-react';
-import GooeyNav from './GooeyNav';
+import GooeyNav from './component/GooeyNav';
+import GlassSurface from './component/GlassSurface';
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
@@ -139,13 +140,22 @@ const RawTranscriptViewer = ({ text }) => {
 const FragmentCard = ({ text, index }) => (
   <div className="relative group perspective-1000">
     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-xl"></div>
-    <div className="bg-[#131b2e] border border-white/5 p-6 rounded-xl relative h-full flex flex-col hover:-translate-y-1 hover:border-purple-500/30 transition-all duration-300 shadow-xl">
-      <div className="flex justify-between items-start mb-4">
-        <Sparkles size={16} className="text-cyan-400 opacity-70" />
-        <span className="text-[10px] font-mono text-slate-600">FRAG_0{index + 1}</span>
+    <GlassSurface
+      width="100%"
+      height="auto"
+      borderRadius={16}
+      backgroundOpacity={0.18}
+      blur={14}
+      className="relative h-full transition-all duration-300 hover:-translate-y-1"
+    >
+      <div className="relative h-full w-full flex flex-col p-6">
+        <div className="flex justify-between items-start mb-4">
+          <Sparkles size={16} className="text-cyan-400 opacity-70" />
+          <span className="text-[10px] font-mono text-slate-600">FRAG_0{index + 1}</span>
+        </div>
+        <p className="text-slate-300 text-sm leading-relaxed font-light italic font-serif">"{text}"</p>
       </div>
-      <p className="text-slate-300 text-sm leading-relaxed font-light italic font-serif">"{text}"</p>
-    </div>
+    </GlassSurface>
   </div>
 );
 
@@ -577,12 +587,22 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
               >
                 <Copy size={14} /> Copy System Prompt
               </button>
-              <button
-                onClick={parseJson}
-                className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide transition-all hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+              <GlassSurface
+                width="auto"
+                height="auto"
+                borderRadius={9999}
+                backgroundOpacity={0.2}
+                blur={14}
+                useSvg={false}
+                className="rounded-full"
               >
-                PARSE JSON
-              </button>
+                <button
+                  onClick={parseJson}
+                  className="text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+                >
+                  PARSE JSON
+                </button>
+              </GlassSurface>
             </div>
           </div>
         </div>
