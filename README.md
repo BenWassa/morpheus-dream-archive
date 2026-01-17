@@ -19,28 +19,31 @@ A personal subconscious archive for capturing, organizing, and visualizing dream
 
 ## Tech Stack
 
-- React (via CDN)
+- React (Vite)
 - Tailwind CSS
 - JSZip + FileSaver.js
+- Lucide icons
 - GitHub Pages hosting
 
 ## Project Structure
 
-- `/entries/` - JSON files for each dream entry
-- `/images/` - Dream scene images
+- `/public/entries/` - JSON files for each dream entry
+- `/public/images/` - Dream scene images
 - `/docs/` - Documentation and prompt templates
 - `/scripts/` - Optional helper scripts
-- `index.json` - Master index of all entries
+- `/public/index.json` - Master index of all entries
+- `export-designer-package.sh` - Minimal export for UX/UI review
 
 ## Getting Started
 
 Brief instructions:
 
 1. Clone repository to local machine
-2. Open `index.html` in browser
-3. Use Add Entry form to create dream entries
-4. Manually update `index.json` with new entry dates
-5. Commit and push to deploy to GitHub Pages
+2. Install dependencies: `npm install`
+3. Start dev server: `npm run dev`
+4. Use Add Entry form to create dream entries
+5. Manually update `public/index.json` with new entry dates
+6. Commit and push to deploy to GitHub Pages
 
 ## Workflow
 
@@ -49,6 +52,14 @@ Brief instructions:
 3. Generate scene images with Sora/Gemini
 4. Add to archive via web form
 5. Commit to repository
+
+## Designer Export
+
+To share UI context with UX/UI designers, run:
+
+`./export-designer-package.sh`
+
+This exports a minimal package into `~/Downloads/morpheus-dream-archive-designer-minimal` with the core UI, styles, and a sample entry.
 
 ## License
 

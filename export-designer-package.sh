@@ -3,19 +3,12 @@
 # Export minimal files for UX/UI designer package
 DEST="$HOME/Downloads/morpheus-dream-archive-designer-minimal"
 
-# Create destination directory
-mkdir -p "$DEST"
-
-# Copy essential files only
+# Copy minimal files only (5 files total)
+mkdir -p "$DEST/src" "$DEST/public"
 cp README.md "$DEST/"
-cp docs/workflow-guide.md "$DEST/"
-cp docs/dream-structuring-prompt.md "$DEST/"
-cp src/App.jsx "$DEST/"
-cp src/index.css "$DEST/"
-cp tailwind.config.js "$DEST/"
-cp public/index.json "$DEST/"
-cp public/entries/2026-01-16.json "$DEST/"
-# Copy one sample image if available
-# cp public/images/* "$DEST/" 2>/dev/null | head -1 || true
+cp src/App.jsx "$DEST/src/"
+cp src/index.css "$DEST/src/"
+cp public/index.json "$DEST/public/"
+cp public/entries/2026-01-16.json "$DEST/public/"
 
 echo "Minimal designer package exported to: $DEST"

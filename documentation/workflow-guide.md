@@ -17,14 +17,19 @@ This document outlines the step-by-step process for capturing, processing, and a
 
 ## 3. Adding Entries to Archive
 
-- Open `index.html` in your browser
+- Run the dev server with `npm run dev` and open the local URL
 - Use the Add Entry form to input the processed dream data
-- Upload generated images to the `/images/` folder
-- Save the dream entry as a JSON file in `/entries/`
-- Update `index.json` with the new entry's date and reference
+- Upload generated images to the `/public/images/` folder
+- Save the dream entry as a JSON file in `/public/entries/`
+- Update `public/index.json` with the new entry's date and reference
 
 ## 4. Committing and Deploying
 
 - Commit all changes to the Git repository
 - Push to the main branch on GitHub
 - The site automatically deploys via GitHub Pages
+
+## 5. Exporting Context for Designers
+
+- Run `./export-designer-package.sh` to generate a minimal package for UX/UI review
+- The package lands in `~/Downloads/morpheus-dream-archive-designer-minimal`
