@@ -297,9 +297,6 @@ const GalleryView = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
                 <div className="mb-24 text-center md:text-left">
-                  <span className="inline-block mb-6">
-                    <Sparkles className="text-purple-500 animate-pulse-slow" size={32} />
-                  </span>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-light text-white leading-snug mb-8">
                     {selectedEntry.summary}
                   </h2>
