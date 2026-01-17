@@ -14,6 +14,7 @@ import {
   Calendar,
   ArrowRight,
 } from 'lucide-react';
+import GooeyNav from './GooeyNav';
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
@@ -48,50 +49,56 @@ const SmartImage = ({ src, alt, className }) => (
 );
 
 // Header
-const Header = ({ currentView, setCurrentView }) => (
-  <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
-    <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <div
-        className="flex items-center gap-4 cursor-pointer group"
-        onClick={() => setCurrentView('gallery')}
-      >
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
-          <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
+const Header = ({ currentView, setCurrentView }) => {
+  const navItems = [
+    {
+      label: 'ARCHIVE',
+      href: '#',
+      onClick: e => {
+        e.preventDefault();
+        setCurrentView('gallery');
+      }
+    },
+    {
+      label: 'NEW ENTRY',
+      href: '#',
+      icon: <Plus size={14} />,
+      onClick: e => {
+        e.preventDefault();
+        setCurrentView('add');
+      }
+    }
+  ];
+  const activeIndex = currentView === 'add' ? 1 : 0;
+
+  return (
+    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div
+          className="flex items-center gap-4 cursor-pointer group"
+          onClick={() => setCurrentView('gallery')}
+        >
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
+              MORPHEUS
+            </span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
+              Dream Archive
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <span className="text-lg font-display tracking-[0.2em] text-white leading-none">MORPHEUS</span>
-          <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
-            Dream Archive
-          </span>
+
+        <div className="bg-white/5 rounded-full border border-white/5">
+          <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
         </div>
       </div>
-
-      <nav className="flex gap-2 bg-white/5 p-1 rounded-full border border-white/5">
-        <button
-          onClick={() => setCurrentView('gallery')}
-          className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all ${
-            currentView === 'gallery'
-              ? 'bg-white/10 text-white shadow-inner shadow-white/5 border border-white/10'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          ARCHIVE
-        </button>
-        <button
-          onClick={() => setCurrentView('add')}
-          className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all flex items-center gap-2 ${
-            currentView === 'add'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/50 border border-purple-400/30'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Plus size={14} /> NEW ENTRY
-        </button>
-      </nav>
-    </div>
-  </header>
-);
+    </header>
+  );
+};
 
 /* --- DREAM RECORD COMPONENTS --- */
 
