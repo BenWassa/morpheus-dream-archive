@@ -29,11 +29,7 @@ const truncateText = (text, maxLength) => {
 
 // Dynamic Background
 const Background = () => (
-  <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#0a0f1c]">
-    <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-900/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 animate-pulse-slow"></div>
-    <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3"></div>
-    <div className="absolute top-1/2 left-1/2 w-[900px] h-[500px] bg-cyan-900/5 rounded-full blur-[150px] -translate-x-1/2 -translate-y-1/2 rotate-12"></div>
-  </div>
+  <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none dream-bg"></div>
 );
 
 // Image Component with Fallback
