@@ -29,7 +29,7 @@ const truncateText = (text, maxLength) => {
 
 // Dynamic Background
 const Background = () => (
-  <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none dream-bg border-4 border-pink-500"></div>
+  <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none dream-bg"></div>
 );
 
 // Image Component with Fallback
@@ -190,8 +190,8 @@ const GalleryView = () => {
   };
 
   return (
-    <div className="relative z-10 pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen border-4 border-red-500">
-      <div className="mb-20 animate-fade-in-up border-4 border-blue-500">
+    <div className="relative z-10 pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
+      <div className="mb-20 animate-fade-in-up">
         <h1 className="text-6xl md:text-8xl font-thin tracking-tighter mb-8 text-white">
           Subconscious<span className="text-purple-500">.</span>
         </h1>
@@ -208,12 +208,12 @@ const GalleryView = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 border-4 border-green-500">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {entries.map((entry, i) => (
             <div
               key={i}
               onClick={() => setSelectedEntry(entry)}
-              className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border-4 border-yellow-500 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
+              className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border border-white/5 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
             >
               <div className="absolute inset-0 z-0">
                 {entry.scenes?.[0]?.image ? (
