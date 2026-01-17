@@ -165,7 +165,7 @@ const GooeyNav = ({
           .effect.filter::before {
             content: "";
             position: absolute;
-            inset: -75px;
+            inset: -10px;
             z-index: -2;
             background: black;
           }
@@ -277,7 +277,7 @@ const GooeyNav = ({
         `}
       </style>
       <div className="relative" ref={containerRef}>
-        <nav className="flex relative overflow-hidden" style={{ transform: 'translate3d(0,0,0.01px)' }}>
+        <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
             className="flex gap-2 list-none p-1 m-0 relative z-[3] text-xs font-medium tracking-wide"
