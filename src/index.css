@@ -7,6 +7,25 @@ body {
   color: #e2e8f0;
 }
 
+.dream-bg {
+  background-color: #0a0f1c;
+  background-image: none;
+}
+
+/* Fixed viewport background gradients (won't move with page content) */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(900px circle at 15% 10%, rgba(84, 104, 255, 0.12), transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
 /* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
