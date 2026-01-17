@@ -591,9 +591,12 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 width="auto"
                 height="auto"
                 borderRadius={9999}
-                backgroundOpacity={0.2}
-                blur={14}
+                backgroundOpacity={0.3}
+                blur={18}
+                saturation={1.6}
                 useSvg={false}
+                forceBackdrop
+                theme="dark"
                 className="rounded-full"
               >
                 <button

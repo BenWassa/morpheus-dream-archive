@@ -9,7 +9,12 @@ body {
 
 .dream-bg {
   background-color: #0a0f1c;
-  background-image: none;
+  background-image:
+    radial-gradient(800px circle at 12% 12%, rgba(76, 129, 255, 0.22), transparent 55%),
+    radial-gradient(700px circle at 88% 20%, rgba(34, 211, 238, 0.18), transparent 60%),
+    radial-gradient(900px circle at 70% 85%, rgba(168, 85, 247, 0.16), transparent 60%);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /* Fixed viewport background gradients (won't move with page content) */
@@ -57,4 +62,9 @@ body::before {
 
 .perspective-1000 {
   perspective: 1000px;
+}
+
+.debug-outline {
+  outline: 1px solid #ff3b30;
+  outline-offset: 2px;
 }
