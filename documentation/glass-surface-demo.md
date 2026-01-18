@@ -40,7 +40,16 @@ Basic usage
 Advanced
 
 ```jsx
-<GlassSurface displace={15} distortionScale={-150} redOffset={5} greenOffset={15} blueOffset={25} brightness={60} opacity={0.8} mixBlendMode="screen">
+<GlassSurface
+  displace={15}
+  distortionScale={-150}
+  redOffset={5}
+  greenOffset={15}
+  blueOffset={25}
+  brightness={60}
+  opacity={0.8}
+  mixBlendMode="screen"
+>
   <span>Advanced Glass Distortion</span>
 </GlassSurface>
 ```
@@ -55,8 +64,7 @@ Use the `polish` prop to enable sheen, micro-noise and a chromatic-fringe fallba
 </GlassSurface>
 ```
 
-ReactBits verbatim example
---------------------------
+## ReactBits verbatim example
 
 For direct comparison the demo includes the **verbatim** ReactBits implementation (JS + CSS) under the "ReactBits original — verbatim example" section. The component is available at:
 

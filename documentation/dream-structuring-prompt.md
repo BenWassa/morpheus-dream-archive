@@ -46,7 +46,16 @@ Example JSON:
 {
   "originalTranscription": "I was in my childhood kitchen but the walls were breathing. Water was rising from the floor tiles...",
   "summary": "A dream about returning to a familiar space that has become alien and unstable. The emotional core was a mix of nostalgia and dislocation, with a thread of loss running through the changing identities and disappearing spaces.",
-  "keywords": ["water", "childhood home", "father", "transformation", "loss", "ocean", "disorientation", "identity"],
+  "keywords": [
+    "water",
+    "childhood home",
+    "father",
+    "transformation",
+    "loss",
+    "ocean",
+    "disorientation",
+    "identity"
+  ],
   "scenes": [
     "I was in my childhood kitchen, but the walls were breathing. Water was rising from the floor tiles, pooling around my ankles. Everything felt both familiar and completely wrong.",
     "My father appeared in the doorway, but he was the age I am now. He did not recognize me. He asked if I had seen his daughter.",
