@@ -1,0 +1,729 @@
+# Commission 3: App Shell (HTML with Embedded React)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dream Archive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+          'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // Gallery View Component
+      function GalleryView() {
+        const [entries, setEntries] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [selectedEntry, setSelectedEntry] = useState(null);
+        const [filterKeyword, setFilterKeyword] = useState('');
+        const [searchText, setSearchText] = useState('');
+        const [error, setError] = useState(null);
+
+        useEffect(() => {
+          loadEntries();
+        }, []);
+
+        const loadEntries = async () => {
+          setLoading(true);
+          setError(null);
+
+          try {
+            const indexResponse = await fetch('./index.json');
+            if (!indexResponse.ok) {
+              throw new Error('Could not load index.json');
+            }
+
+            const indexData = await indexResponse.json();
+            const entryIds = indexData.entries || [];
+
+            const loadedEntries = [];
+            for (const id of entryIds) {
+              try {
+                const entryResponse = await fetch(`./entries/${id}.json`);
+                if (entryResponse.ok) {
+                  const entryData = await entryResponse.json();
+                  loadedEntries.push(entryData);
+                } else {
+                  console.warn(`Could not load entry: ${id}`);
+                }
+              } catch (err) {
+                console.warn(`Error loading entry ${id}:`, err);
+              }
+            }
+
+            loadedEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            setEntries(loadedEntries);
+          } catch (err) {
+            console.error('Error loading entries:', err);
+            setError(err.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const formatDate = (dateString) => {
+          const date = new Date(dateString + 'T00:00:00');
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        };
+
+        const filterEntries = () => {
+          let filtered = entries;
+
+          if (filterKeyword) {
+            filtered = filtered.filter(
+              (entry) =>
+                entry.keywords &&
+                entry.keywords.some((k) => k.toLowerCase() === filterKeyword.toLowerCase())
+            );
+          }
+
+          if (searchText) {
+            const searchLower = searchText.toLowerCase();
+            filtered = filtered.filter((entry) => {
+              const summaryMatch =
+                entry.summary && entry.summary.toLowerCase().includes(searchLower);
+              const sceneMatch =
+                entry.scenes &&
+                entry.scenes.some((scene) => scene.text.toLowerCase().includes(searchLower));
+              return summaryMatch || sceneMatch;
+            });
+          }
+
+          return filtered;
+        };
+
+        const clearFilters = () => {
+          setFilterKeyword('');
+          setSearchText('');
+        };
+
+        const handleKeywordClick = (keyword) => {
+          setFilterKeyword(keyword);
+        };
+
+        const openDetail = (entry) => {
+          setSelectedEntry(entry);
+        };
+
+        const closeDetail = () => {
+          setSelectedEntry(null);
+        };
+
+        const filteredEntries = filterEntries();
+
+        if (loading) {
+          return (
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-600">Loading dreams...</p>
+              </div>
+            </div>
+          );
+        }
+
+        if (error) {
+          return (
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="bg-red-50 border border-red-200 rounded p-6 text-center">
+                <p className="text-red-700">Error loading dream archive: {error}</p>
+                <button
+                  onClick={loadEntries}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        if (entries.length === 0) {
+          return (
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="text-center py-12">
+                <p className="text-xl text-gray-600">
+                  No dreams archived yet. Add your first dream!
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        if (selectedEntry) {
+          return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+              <div className="min-h-screen px-4 py-8">
+                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl">
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {formatDate(selectedEntry.date)}
+                    </h2>
+                    <button
+                      onClick={closeDetail}
+                      className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div className="p-6">
+                    {selectedEntry.keywords && selectedEntry.keywords.length > 0 && (
+                      <div className="mb-6 flex flex-wrap gap-2">
+                        {selectedEntry.keywords.map((keyword, i) => (
+                          <span
+                            key={i}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedEntry.summary && (
+                      <div className="mb-8">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Summary</h3>
+                        <p className="text-gray-600 leading-relaxed">{selectedEntry.summary}</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-8">
+                      <h3 className="text-lg font-semibold text-gray-700">Scenes</h3>
+                      {selectedEntry.scenes &&
+                        selectedEntry.scenes.map((scene, i) => (
+                          <div key={i} className="space-y-3">
+                            <img
+                              src={`./${scene.image}`}
+                              alt={`Scene ${i + 1}`}
+                              className="w-full rounded-lg shadow-md"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                console.error(`Failed to load image: ${scene.image}`);
+                              }}
+                            />
+                            <p className="text-gray-700 leading-relaxed">{scene.text}</p>
+                          </div>
+                        ))}
+                    </div>
+
+                    {selectedEntry.fragments && selectedEntry.fragments.length > 0 && (
+                      <div className="mt-8 pt-8 border-t border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-3">Fragments</h3>
+                        <ul className="space-y-2">
+                          {selectedEntry.fragments.map((fragment, i) => (
+                            <li key={i} className="text-gray-600 italic">
+                              • {fragment}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="max-w-7xl mx-auto p-6">
+            <div className="mb-6 space-y-4">
+              <div className="flex gap-4 flex-wrap">
+                <input
+                  type="text"
+                  placeholder="Search dreams..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="flex-1 min-w-64 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {(filterKeyword || searchText) && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+
+              {filterKeyword && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Filtering by:</span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
+                    {filterKeyword}
+                  </span>
+                </div>
+              )}
+
+              <p className="text-sm text-gray-600">
+                Showing {filteredEntries.length} of {entries.length} dreams
+              </p>
+            </div>
+
+            {filteredEntries.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-xl text-gray-600">No dreams match your filters.</p>
+                <button
+                  onClick={clearFilters}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEntries.map((entry, index) => (
+                  <div
+                    key={index}
+                    onClick={() => openDetail(entry)}
+                    className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    {entry.scenes && entry.scenes.length > 0 && entry.scenes[0].image && (
+                      <div className="aspect-video bg-gray-100">
+                        <img
+                          src={`./${entry.scenes[0].image}`}
+                          alt="Dream thumbnail"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-800 mb-2">{formatDate(entry.date)}</h3>
+
+                      {entry.keywords && entry.keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {entry.keywords.slice(0, 3).map((keyword, i) => (
+                            <span
+                              key={i}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleKeywordClick(keyword);
+                              }}
+                              className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full hover:bg-blue-100 cursor-pointer"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {entry.summary && (
+                        <p className="text-sm text-gray-600 line-clamp-2">{entry.summary}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Add Entry Form Component
+      function AddEntryForm() {
+        const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+        const [originalTranscription, setOriginalTranscription] = useState('');
+        const [summary, setSummary] = useState('');
+        const [keywords, setKeywords] = useState('');
+        const [scenes, setScenes] = useState([{ text: '', image: null, imagePreview: null }]);
+        const [fragments, setFragments] = useState('');
+        const [errors, setErrors] = useState([]);
+        const [successMessage, setSuccessMessage] = useState('');
+        const fileInputRefs = useRef([]);
+
+        const addScene = () => {
+          setScenes([...scenes, { text: '', image: null, imagePreview: null }]);
+        };
+
+        const removeScene = (index) => {
+          if (scenes.length > 1) {
+            const newScenes = scenes.filter((_, i) => i !== index);
+            setScenes(newScenes);
+            fileInputRefs.current = fileInputRefs.current.filter((_, i) => i !== index);
+          }
+        };
+
+        const updateSceneText = (index, text) => {
+          const newScenes = [...scenes];
+          newScenes[index].text = text;
+          setScenes(newScenes);
+        };
+
+        const handleImageUpload = (index, e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const newScenes = [...scenes];
+              newScenes[index].image = file;
+              newScenes[index].imagePreview = event.target.result;
+              setScenes(newScenes);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        const validateForm = () => {
+          const newErrors = [];
+
+          if (!date) {
+            newErrors.push('Date is required');
+          }
+
+          if (scenes.length === 0) {
+            newErrors.push('At least one scene is required');
+          }
+
+          let hasValidScene = false;
+          scenes.forEach((scene, index) => {
+            if (scene.text && scene.image) {
+              hasValidScene = true;
+            } else if (scene.text || scene.image) {
+              newErrors.push(`Scene ${index + 1}: Both text and image are required`);
+            }
+          });
+
+          if (!hasValidScene) {
+            newErrors.push('At least one scene must have both text and image');
+          }
+
+          if (!summary) {
+            newErrors.push('Warning: Summary is empty (recommended to add one)');
+          }
+
+          setErrors(newErrors);
+          return (
+            newErrors.length === 0 || (newErrors.length === 1 && newErrors[0].includes('Warning'))
+          );
+        };
+
+        const generateFiles = async () => {
+          setErrors([]);
+          setSuccessMessage('');
+
+          if (!validateForm()) {
+            return;
+          }
+
+          try {
+            const JSZip = window.JSZip;
+            const zip = new JSZip();
+
+            const keywordsArray = keywords
+              .split(',')
+              .map((k) => k.trim())
+              .filter((k) => k.length > 0);
+
+            const fragmentsArray = fragments
+              .split('\n')
+              .map((f) => f.trim())
+              .filter((f) => f.length > 0);
+
+            const validScenes = scenes.filter((scene) => scene.text && scene.image);
+
+            const jsonData = {
+              date: date,
+              originalTranscription: originalTranscription,
+              summary: summary,
+              keywords: keywordsArray,
+              scenes: validScenes.map((scene, index) => {
+                const extension = scene.image.name.split('.').pop();
+                const sceneNumber = String(index + 1).padStart(2, '0');
+                return {
+                  text: scene.text,
+                  image: `images/${date}-${sceneNumber}.${extension}`,
+                };
+              }),
+              fragments: fragmentsArray,
+            };
+
+            zip.file(`entries/${date}.json`, JSON.stringify(jsonData, null, 2));
+
+            for (let i = 0; i < validScenes.length; i++) {
+              const scene = validScenes[i];
+              const extension = scene.image.name.split('.').pop();
+              const sceneNumber = String(i + 1).padStart(2, '0');
+              const fileName = `images/${date}-${sceneNumber}.${extension}`;
+
+              const imageData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(scene.image);
+              });
+
+              zip.file(fileName, imageData);
+            }
+
+            const content = await zip.generateAsync({ type: 'blob' });
+
+            const saveAs = window.saveAs;
+            saveAs(content, `dream-${date}.zip`);
+
+            setSuccessMessage(
+              `Add this to index.json at the top of the "entries" array:\n"${date}",`
+            );
+
+            setTimeout(() => {
+              clearForm();
+            }, 5000);
+          } catch (error) {
+            setErrors([`Error generating files: ${error.message}`]);
+          }
+        };
+
+        const clearForm = () => {
+          setDate(new Date().toISOString().split('T')[0]);
+          setOriginalTranscription('');
+          setSummary('');
+          setKeywords('');
+          setScenes([{ text: '', image: null, imagePreview: null }]);
+          setFragments('');
+          setErrors([]);
+          fileInputRefs.current = [];
+        };
+
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            {errors.length > 0 && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                {errors.map((error, index) => (
+                  <p
+                    key={index}
+                    className={`text-sm ${error.includes('Warning') ? 'text-yellow-700' : 'text-red-700'}`}
+                  >
+                    {error}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+                <p className="text-sm text-green-700 font-semibold">Success! Files generated.</p>
+                <p className="text-sm text-green-700 mt-2 whitespace-pre-wrap font-mono">
+                  {successMessage}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Original Transcription
+                </label>
+                <textarea
+                  value={originalTranscription}
+                  onChange={(e) => setOriginalTranscription(e.target.value)}
+                  rows={8}
+                  placeholder="Paste the raw voice transcription here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Summary</label>
+                <textarea
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  rows={3}
+                  placeholder="2-3 sentence summary of the dream..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
+                <input
+                  type="text"
+                  value={keywords}
+                  onChange={(e) => setKeywords(e.target.value)}
+                  placeholder="water, childhood, anxiety, father"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Comma-separated keywords</p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Scenes * (minimum 1)
+                  </label>
+                  <button
+                    onClick={addScene}
+                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                  >
+                    + Add Scene
+                  </button>
+                </div>
+
+                {scenes.map((scene, index) => (
+                  <div key={index} className="mb-6 p-4 border border-gray-200 rounded bg-gray-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-medium text-gray-700">Scene {index + 1}</h3>
+                      {scenes.length > 1 && (
+                        <button
+                          onClick={() => removeScene(index)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <textarea
+                      value={scene.text}
+                      onChange={(e) => updateSceneText(index, e.target.value)}
+                      rows={3}
+                      placeholder="Describe this scene..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(index, e)}
+                        ref={(el) => (fileInputRefs.current[index] = el)}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {scene.imagePreview && (
+                        <img
+                          src={scene.imagePreview}
+                          alt={`Scene ${index + 1} preview`}
+                          className="mt-3 max-w-xs rounded border border-gray-300"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fragments (optional)
+                </label>
+                <textarea
+                  value={fragments}
+                  onChange={(e) => setFragments(e.target.value)}
+                  rows={4}
+                  placeholder="Disconnected dream fragments, one per line..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">One fragment per line</p>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={generateFiles}
+                  className="px-6 py-3 bg-green-600 text-white font-medium rounded hover:bg-green-700"
+                >
+                  Generate Entry Files
+                </button>
+                <button
+                  onClick={clearForm}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded hover:bg-gray-300"
+                >
+                  Clear Form
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Main App Component
+      function App() {
+        const [currentView, setCurrentView] = useState('gallery');
+
+        return (
+          <div className="min-h-screen bg-gray-50">
+            <header className="bg-white shadow-sm border-b border-gray-200">
+              <div className="max-w-7xl mx-auto px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-2xl font-bold text-gray-900">Dream Archive</h1>
+                  <nav className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentView('gallery')}
+                      className={`px-4 py-2 rounded font-medium transition-colors ${
+                        currentView === 'gallery'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Gallery
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('add')}
+                      className={`px-4 py-2 rounded font-medium transition-colors ${
+                        currentView === 'add'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Add Entry
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </header>
+
+            <main className="py-6">
+              {currentView === 'gallery' ? <GalleryView /> : <AddEntryForm />}
+            </main>
+          </div>
+        );
+      }
+
+      // Render the app
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
+```

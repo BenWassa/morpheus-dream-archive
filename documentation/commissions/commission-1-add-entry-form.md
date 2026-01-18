@@ -92,15 +92,15 @@ export default function AddEntryForm() {
 
       const keywordsArray = keywords
         .split(',')
-        .map(k => k.trim())
-        .filter(k => k.length > 0);
+        .map((k) => k.trim())
+        .filter((k) => k.length > 0);
 
       const fragmentsArray = fragments
         .split('\n')
-        .map(f => f.trim())
-        .filter(f => f.length > 0);
+        .map((f) => f.trim())
+        .filter((f) => f.length > 0);
 
-      const validScenes = scenes.filter(scene => scene.text && scene.image);
+      const validScenes = scenes.filter((scene) => scene.text && scene.image);
 
       const jsonData = {
         date: date,
@@ -112,10 +112,10 @@ export default function AddEntryForm() {
           const sceneNumber = String(index + 1).padStart(2, '0');
           return {
             text: scene.text,
-            image: `images/${date}-${sceneNumber}.${extension}`
+            image: `images/${date}-${sceneNumber}.${extension}`,
           };
         }),
-        fragments: fragmentsArray
+        fragments: fragmentsArray,
       };
 
       zip.file(`entries/${date}.json`, JSON.stringify(jsonData, null, 2));
@@ -125,7 +125,7 @@ export default function AddEntryForm() {
         const extension = scene.image.name.split('.').pop();
         const sceneNumber = String(i + 1).padStart(2, '0');
         const fileName = `images/${date}-${sceneNumber}.${extension}`;
-        
+
         const imageData = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (e) => resolve(e.target.result);
@@ -137,7 +137,7 @@ export default function AddEntryForm() {
       }
 
       const content = await zip.generateAsync({ type: 'blob' });
-      
+
       const saveAs = window.saveAs;
       saveAs(content, `dream-${date}.zip`);
 
@@ -146,7 +146,6 @@ export default function AddEntryForm() {
       setTimeout(() => {
         clearForm();
       }, 5000);
-
     } catch (error) {
       setErrors([`Error generating files: ${error.message}`]);
     }
@@ -170,7 +169,10 @@ export default function AddEntryForm() {
       {errors.length > 0 && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
           {errors.map((error, index) => (
-            <p key={index} className={`text-sm ${error.includes('Warning') ? 'text-yellow-700' : 'text-red-700'}`}>
+            <p
+              key={index}
+              className={`text-sm ${error.includes('Warning') ? 'text-yellow-700' : 'text-red-700'}`}
+            >
               {error}
             </p>
           ))}
@@ -180,15 +182,15 @@ export default function AddEntryForm() {
       {successMessage && (
         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded">
           <p className="text-sm text-green-700 font-semibold">Success! Files generated.</p>
-          <p className="text-sm text-green-700 mt-2 whitespace-pre-wrap font-mono">{successMessage}</p>
+          <p className="text-sm text-green-700 mt-2 whitespace-pre-wrap font-mono">
+            {successMessage}
+          </p>
         </div>
       )}
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
           <input
             type="date"
             value={date}
@@ -211,9 +213,7 @@ export default function AddEntryForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Summary
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Summary</label>
           <textarea
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
@@ -224,9 +224,7 @@ export default function AddEntryForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Keywords
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
           <input
             type="text"
             value={keywords}
@@ -239,9 +237,7 @@ export default function AddEntryForm() {
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Scenes * (minimum 1)
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Scenes * (minimum 1)</label>
             <button
               onClick={addScene}
               className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
