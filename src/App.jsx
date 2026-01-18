@@ -706,8 +706,9 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 <label className="block text-slate-500 text-[10px] uppercase tracking-widest mb-3">
                   Dream Summary
                 </label>
-                <div className="text-slate-300 bg-black/30 border border-white/5 p-6 rounded-xl text-sm leading-relaxed font-serif italic">
-                  {truncateText(formData.summary, 300)}
+                <div className="text-slate-300 bg-black/30 border border-white/5 p-6 rounded-xl text-sm leading-relaxed font-serif italic whitespace-pre-wrap">
+                  {/* show the full parsed summary in the review — do not truncate here */}
+                  {formData.summary}
                 </div>
               </div>
 
@@ -725,8 +726,9 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                         <span className="text-xs font-mono text-purple-400 mb-2 block">
                           SCENE 0{idx + 1}
                         </span>
-                        <p className="text-slate-300 text-sm leading-relaxed">
-                          {truncateText(scene.text, 150)}
+                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                          {/* show full scene text in review (no truncation) */}
+                          {scene.text}
                         </p>
                       </div>
                       <div className="flex-shrink-0">
