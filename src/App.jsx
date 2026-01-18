@@ -13,6 +13,7 @@ import {
   Sparkles,
   Calendar,
   ArrowRight,
+  CheckCircle,
 } from 'lucide-react';
 import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
@@ -49,6 +50,20 @@ const SmartImage = ({ src, alt, className }) => (
       e.currentTarget.src = FALLBACK_IMAGE;
     }}
   />
+);
+
+// Toast Notification Component
+const Toast = ({ isVisible, message }) => (
+  <div
+    className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ease-out ${
+      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+    }`}
+  >
+    <div className="bg-[#131b2e]/95 backdrop-blur-xl border border-cyan-400/30 rounded-xl px-6 py-4 flex items-center gap-3 shadow-2xl shadow-cyan-500/10">
+      <CheckCircle size={18} className="text-cyan-400 flex-shrink-0" />
+      <span className="text-sm font-medium text-cyan-200/90">{message}</span>
+    </div>
+  </div>
 );
 
 // Header
@@ -427,10 +442,26 @@ const AddEntryForm = () => {
   });
   const [scenes, setScenes] = useState([]);
   const [error, setError] = useState('');
+  const [showToastNotification, setShowToastNotification] = useState(false);
+
+  const showToast = (message) => {
+    setShowToastNotification(message);
+    setTimeout(() => setShowToastNotification(false), 3000);
+  };
 
   const parseJson = () => {
     try {
+      // IMPORTANT: preserve the full AI output when parsing.
+      // Do NOT perform any truncation or shortening here —
+      // truncation belongs solely to the UI layer when rendering.
       const parsed = JSON.parse(jsonText);
+
+      // DEV-time sanity check to catch accidental truncation upstream
+      if (import.meta.env.DEV) {
+        if (typeof parsed.summary === 'string' && parsed.summary.endsWith('...')) {
+          console.warn('parseJson: parsed.summary appears truncated — ensure the AI returns full text');
+        }
+      }
       setFormData({
         originalTranscription: parsed.originalTranscription || '',
         summary: parsed.summary || '',
@@ -502,6 +533,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
     try {
       await navigator.clipboard.writeText(prompt);
+      showToast('System prompt copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy prompt:', err);
       const textArea = document.createElement('textarea');
@@ -510,6 +542,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
+      showToast('System prompt copied to clipboard!');
     }
   };
 
@@ -673,8 +706,9 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 <label className="block text-slate-500 text-[10px] uppercase tracking-widest mb-3">
                   Dream Summary
                 </label>
-                <div className="text-slate-300 bg-black/30 border border-white/5 p-6 rounded-xl text-sm leading-relaxed font-serif italic">
-                  {truncateText(formData.summary, 300)}
+                <div className="text-slate-300 bg-black/30 border border-white/5 p-6 rounded-xl text-sm leading-relaxed font-serif italic whitespace-pre-wrap">
+                  {/* show the full parsed summary in the review — do not truncate here */}
+                  {formData.summary}
                 </div>
               </div>
 
@@ -692,8 +726,9 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                         <span className="text-xs font-mono text-purple-400 mb-2 block">
                           SCENE 0{idx + 1}
                         </span>
-                        <p className="text-slate-300 text-sm leading-relaxed">
-                          {truncateText(scene.text, 150)}
+                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                          {/* show full scene text in review (no truncation) */}
+                          {scene.text}
                         </p>
                       </div>
                       <div className="flex-shrink-0">
@@ -734,6 +769,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
           </div>
         </div>
       )}
+      <Toast isVisible={showToastNotification} message={showToastNotification} />
     </div>
   );
 };
