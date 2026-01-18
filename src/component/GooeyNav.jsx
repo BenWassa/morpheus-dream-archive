@@ -81,7 +81,11 @@ const GooeyNav = ({
     };
     Object.assign(filterRef.current.style, styles);
     Object.assign(textRef.current.style, styles);
-    textRef.current.innerText = element.innerText;
+    // Use innerHTML to preserve icons and layout structure for the inverse effect
+    const anchor = element.querySelector('a');
+    if (anchor) {
+      textRef.current.innerHTML = anchor.innerHTML;
+    }
   };
   const handleClick = (e, index) => {
     const liEl = e.currentTarget;
@@ -280,7 +284,7 @@ const GooeyNav = ({
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="flex gap-2 list-none p-1 m-0 relative z-[3] text-xs font-medium tracking-wide"
+            className="flex gap-4 sm:gap-2 list-none p-1 sm:p-1 m-0 relative z-[3] text-[10px] sm:text-xs font-medium tracking-wide"
             style={{
               color: 'white',
               textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)',
@@ -300,17 +304,22 @@ const GooeyNav = ({
                   }}
                   href={item.href}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="outline-none py-[0.6em] px-[1.1em] inline-flex items-center gap-2"
+                  className="outline-none py-[0.8em] sm:py-[0.6em] px-[1em] sm:px-[1.1em] inline-flex items-center gap-1.5 sm:gap-2"
                 >
-                  {item.icon ? <span className="opacity-80">{item.icon}</span> : null}
-                  <span>{item.label}</span>
+                  {item.icon ? (
+                    <span className="opacity-80 scale-110 sm:scale-100">{item.icon}</span>
+                  ) : null}
+                  <span className={item.icon ? 'hidden sm:inline' : ''}>{item.label}</span>
                 </a>
               </li>
             ))}
           </ul>
         </nav>
         <span className="effect filter" ref={filterRef} />
-        <span className="effect text text-xs font-medium tracking-wide" ref={textRef} />
+        <span
+          className="effect text text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap inline-flex items-center justify-center gap-1.5 sm:gap-2"
+          ref={textRef}
+        />
       </div>
     </>
   );

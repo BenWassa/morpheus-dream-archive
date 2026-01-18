@@ -72,6 +72,7 @@ const Header = ({ currentView, setCurrentView }) => {
     {
       label: 'ARCHIVE',
       href: '#',
+      icon: <Moon size={14} />,
       onClick: (e) => {
         e.preventDefault();
         setCurrentView('gallery');
@@ -89,6 +90,7 @@ const Header = ({ currentView, setCurrentView }) => {
     SHOW_DEMO && {
       label: 'DEMO',
       href: '#',
+      icon: <Sparkles size={14} />,
       onClick: (e) => {
         e.preventDefault();
         setCurrentView('demo');
@@ -101,26 +103,26 @@ const Header = ({ currentView, setCurrentView }) => {
 
   return (
     <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
         <div
-          className="flex items-center gap-4 cursor-pointer group"
+          className="flex items-center gap-2 sm:gap-4 cursor-pointer group"
           onClick={() => setCurrentView('gallery')}
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-white/20"></div>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
+            <span className="text-sm sm:text-lg font-display tracking-widest sm:tracking-[0.2em] text-white leading-none">
               MORPHEUS
             </span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
+            <span className="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1 hidden sm:block">
               Dream Archive
             </span>
           </div>
         </div>
 
-        <div className="bg-white/5 rounded-full border border-white/5">
+        <div className="bg-white/5 rounded-full border border-white/5 transition-all py-1 px-1 sm:p-0">
           <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
         </div>
       </div>
@@ -136,30 +138,30 @@ const RawTranscriptViewer = ({ text }) => {
   if (!text) return null;
 
   return (
-    <div className="mt-16 border-t border-white/10 pt-8">
+    <div className="mt-12 sm:mt-16 border-t border-white/10 pt-8">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-4 text-slate-500 hover:text-cyan-300 transition-colors w-full group py-4"
+        className="flex items-center gap-3 sm:gap-4 text-slate-500 hover:text-cyan-300 transition-colors w-full group py-4"
       >
         <div
-          className={`p-2 rounded-full border border-current transition-all ${
+          className={`p-1.5 sm:p-2 rounded-full border border-current transition-all ${
             isOpen ? 'rotate-180' : ''
           }`}
         >
-          <ChevronDown size={16} />
+          <ChevronDown size={14} className="sm:w-4 sm:h-4" />
         </div>
-        <span className="font-mono uppercase tracking-widest text-xs flex-1 text-left">
+        <span className="font-mono uppercase tracking-wide sm:tracking-widest text-[10px] sm:text-xs flex-1 text-left">
           {isOpen ? 'Hide Raw Transcription' : 'View Raw Transcription'}
         </span>
-        <div className="h-px bg-white/10 flex-1 group-hover:bg-cyan-900/50 transition-colors"></div>
+        <div className="hidden sm:block h-px bg-white/10 flex-1 group-hover:bg-cyan-900/50 transition-colors"></div>
       </button>
 
       {isOpen && (
-        <div className="mt-6 bg-black/40 rounded-sm border-l-2 border-purple-500/50 p-8 animate-fade-in relative overflow-hidden">
+        <div className="mt-6 bg-black/40 rounded-sm border-l-2 border-purple-500/50 p-5 sm:p-8 animate-fade-in relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <FileText size={100} />
+            <FileText size={80} className="sm:w-[100px] sm:h-[100px]" />
           </div>
-          <p className="font-serif text-lg text-slate-300 leading-loose whitespace-pre-wrap relative z-10">
+          <p className="font-serif text-base sm:text-lg text-slate-300 leading-relaxed sm:leading-loose whitespace-pre-wrap relative z-10">
             {text}
           </p>
         </div>
@@ -234,14 +236,14 @@ const GalleryView = () => {
   };
 
   return (
-    <div className="relative z-10 pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
-      <div className="mb-20 animate-fade-in-up">
-        <h1 className="text-6xl md:text-8xl font-thin tracking-tighter mb-8 text-white">
+    <div className="relative z-10 pt-24 md:pt-32 pb-20 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen">
+      <div className="mb-12 md:mb-20 animate-fade-in-up">
+        <h1 className="text-4xl sm:text-6xl md:text-8xl font-thin tracking-tighter mb-4 sm:mb-8 text-white">
           Subconscious<span className="text-purple-500">.</span>
         </h1>
-        <div className="flex gap-4 items-center">
-          <div className="h-px bg-white/20 w-32"></div>
-          <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">
+        <div className="flex gap-3 sm:gap-4 items-center">
+          <div className="h-px bg-white/20 w-12 sm:w-32"></div>
+          <p className="text-slate-400 font-mono text-[10px] sm:text-sm tracking-wide sm:tracking-widest uppercase">
             Dream Index Initialized
           </p>
         </div>
@@ -257,7 +259,7 @@ const GalleryView = () => {
             <div
               key={i}
               onClick={() => setSelectedEntry(entry)}
-              className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border border-white/5 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
+              className="group relative h-[380px] sm:h-[450px] md:h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border border-white/5 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
             >
               <div className="absolute inset-0 z-0">
                 {entry.scenes?.[0]?.image ? (
@@ -274,7 +276,7 @@ const GalleryView = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c]/70 via-[#0a0f1c]/25 to-transparent"></div>
               </div>
 
-              <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end">
+              <div className="absolute inset-0 z-10 p-6 sm:p-8 flex flex-col justify-end">
                 <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase">
@@ -282,7 +284,7 @@ const GalleryView = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-2xl font-display text-white mb-4 leading-tight group-hover:text-cyan-200 transition-colors">
+                  <h3 className="text-xl sm:text-2xl font-display text-white mb-4 leading-tight group-hover:text-cyan-200 transition-colors">
                     {truncateText(entry.summary, 60)}
                   </h3>
 
@@ -306,50 +308,61 @@ const GalleryView = () => {
       )}
 
       {selectedEntry && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-24 pb-6">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-start justify-center pt-16 sm:pt-24 pb-0 sm:pb-8">
           <div
             className="absolute inset-0 bg-[#05080f]/70 backdrop-blur-xl animate-fade-in"
             onClick={() => setSelectedEntry(null)}
           ></div>
 
-          <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
-            <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex flex-col md:flex-row md:justify-between md:items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50 gap-4">
-              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                    Entry Date
-                  </span>
-                  <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
-                </div>
-                <div className="hidden md:block w-px h-8 bg-white/10"></div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedEntry.keywords?.map((k, j) => (
-                    <span
-                      key={j}
-                      className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
-                    >
-                      {k}
-                    </span>
-                  ))}
-                </div>
+          <div className="relative w-full h-[calc(100dvh-5rem)] sm:h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl rounded-t-[2rem] md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+            <div className="flex-none p-4 sm:p-6 md:px-12 md:py-8 border-b border-white/5 flex items-center justify-between bg-[#0a0f1c]/50 backdrop-blur-md z-50">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+                  Entry Date
+                </span>
+                <span className="font-mono text-cyan-400 text-base sm:text-lg">
+                  {selectedEntry.date}
+                </span>
               </div>
+
               <button
                 onClick={() => setSelectedEntry(null)}
-                className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
+                className="group p-2 sm:p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
               >
-                <X size={24} className="text-slate-400 group-hover:text-white transition-colors" />
+                <X size={20} className="text-slate-400 group-hover:text-white transition-colors" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
-                <div className="mb-24 text-center md:text-left">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-light text-white leading-snug mb-8">
+                <div className="flex flex-wrap gap-2 mb-8 md:hidden">
+                  {selectedEntry.keywords?.map((k, j) => (
+                    <span
+                      key={j}
+                      className="text-[9px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mb-12 sm:mb-24 text-center md:text-left">
+                  <div className="hidden md:flex flex-wrap gap-2 mb-8">
+                    {selectedEntry.keywords?.map((k, j) => (
+                      <span
+                        key={j}
+                        className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
+                      >
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-light text-white leading-snug mb-8">
                     {selectedEntry.summary}
                   </h2>
                 </div>
 
-                <div className="relative pl-0 md:pl-8 border-l-0 md:border-l border-white/5 space-y-24">
+                <div className="relative pl-0 md:pl-8 border-l-0 md:border-l border-white/5 space-y-16 sm:space-y-24">
                   {selectedEntry.scenes?.map((scene, idx) => {
                     const sceneNumber = String(idx + 1).padStart(2, '0');
                     const hasImage = Boolean(scene.image);
@@ -361,22 +374,22 @@ const GalleryView = () => {
                         </div>
 
                         <div
-                          className={`grid grid-cols-1 ${hasImage ? 'lg:grid-cols-2' : ''} gap-12 items-start`}
+                          className={`grid grid-cols-1 ${hasImage ? 'md:grid-cols-2' : ''} gap-8 md:gap-12 items-start`}
                         >
-                          <div className="space-y-6">
+                          <div className="space-y-4 sm:space-y-6">
                             <div className="flex items-center gap-3 text-purple-400/80">
                               <span className="text-xs font-mono tracking-widest uppercase">
                                 Scene {sceneNumber}
                               </span>
                               <div className="h-px bg-purple-500/20 flex-1"></div>
                             </div>
-                            <p className="font-serif text-xl md:text-2xl text-slate-300 leading-relaxed">
+                            <p className="font-serif text-lg sm:text-xl md:text-2xl text-slate-300 leading-relaxed">
                               {scene.text}
                             </p>
                           </div>
 
                           {hasImage && (
-                            <div className="relative mt-4 lg:mt-0">
+                            <div className="relative mt-4 md:mt-0">
                               <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-cyan-500/20 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
                               <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-2xl">
                                 <SmartImage
@@ -688,7 +701,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
             </div>
 
             <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div>
                   <label className="block text-slate-500 text-[10px] uppercase tracking-widest mb-3">
                     Dream Date
@@ -724,7 +737,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                     key={idx}
                     className="bg-black/20 rounded-xl p-6 border border-white/5 hover:border-white/10 transition-colors"
                   >
-                    <div className="flex justify-between items-start gap-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6">
                       <div className="flex-1">
                         <span className="text-xs font-mono text-purple-400 mb-2 block">
                           SCENE 0{idx + 1}
