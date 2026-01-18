@@ -459,7 +459,9 @@ const AddEntryForm = () => {
       // DEV-time sanity check to catch accidental truncation upstream
       if (import.meta.env.DEV) {
         if (typeof parsed.summary === 'string' && parsed.summary.endsWith('...')) {
-          console.warn('parseJson: parsed.summary appears truncated — ensure the AI returns full text');
+          console.warn(
+            'parseJson: parsed.summary appears truncated — ensure the AI returns full text'
+          );
         }
       }
       setFormData({

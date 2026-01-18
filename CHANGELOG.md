@@ -6,22 +6,23 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **App Icons & PWA Support**: 
+- **App Icons & PWA Support**:
   - High-resolution source icon added to `src/assets/`.
   - Production icon set (16px to 512px) generated in `public/icons/`.
   - Web manifest (`manifest.webmanifest`) for PWA installation support.
   - Configurable icon regeneration script: `npm run icons:generate`.
-- **GitHub Pages Optimization**: 
+- **GitHub Pages Optimization**:
   - Manifest and icon paths updated to be relative, ensuring correct resolution on GitHub Pages subpaths.
 
 ### Fixed
 
-- **UI/UX**: 
+- **UI/UX**:
   - Ensured full parsed dream summaries and scenes are displayed in the review stage without truncation.
 
 ## [1.2.0] - 2026-01-18
 
 ### Changed
+
 - Infrastructure and project structure refinements.
 
 ## [1.1.0] - 2026-01-17
