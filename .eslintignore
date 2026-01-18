@@ -1,0 +1,13 @@
+.vite/
+docs/
+public/
+dist/
+.cache/
+package-lock.json
+.git/
+
+# Node modules are ignored by ESLint by default, but keep explicit for clarity
+node_modules/
+
+# Ignore build artifacts from other tools
+*.map
