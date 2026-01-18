@@ -68,3 +68,130 @@ body::before {
   outline: 1px solid #ff3b30;
   outline-offset: 2px;
 }
+
+/* gd-glass: scoped helper for GlassSurface component
+   - prevents ancestor bg utilities from clobbering backdrop-filter
+   - provides optional polished accents (sheen, noise, chroma)
+*/
+.gd-glass {
+  background-color: transparent !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: var(--gd-backdrop, none);
+  backdrop-filter: var(--gd-backdrop, none);
+  isolation: isolate;
+  position: relative;
+}
+
+.gd-glass[data-force-backdrop='true'] {
+  -webkit-backdrop-filter: var(--gd-backdrop, blur(12px) saturate(1.4));
+  backdrop-filter: var(--gd-backdrop, blur(12px) saturate(1.4));
+}
+
+.gd-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  mix-blend-mode: overlay;
+}
+
+.gd-glass.gd-force-reset {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Polished visual accents (opt-in via `polish` prop / `.polished`)
+   Sheen, micro-noise and a lightweight chromatic fallback. */
+.gd-glass.polished {
+  --gd-sheen-opacity: 0.12;
+  --gd-noise-opacity: 0.03;
+  --gd-chroma-opacity: 0.12;
+}
+
+.gd-glass.polished .gd-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.02) 35%, rgba(255,255,255,0.01) 60%, transparent 100%);
+  opacity: var(--gd-sheen-opacity);
+  mix-blend-mode: overlay;
+  transform: translateZ(0);
+}
+
+.gd-glass.polished::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.02) 0%, transparent 20%),
+    radial-gradient(circle at 80% 80%, rgba(0,0,0,0.02) 0%, transparent 20%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.002) 0 1px, transparent 1px 3px);
+  opacity: var(--gd-noise-opacity);
+  mix-blend-mode: overlay;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gd-glass.polished .gd-chroma-fallback {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,80,120,var(--gd-chroma-opacity)) 0%, rgba(0,200,255,var(--gd-chroma-opacity)) 100%);
+    mix-blend-mode: screen;
+    transform: translate3d(0.6px, 0.6px, 0) scale(1.01);
+    filter: blur(6px) saturate(1.2);
+    opacity: calc(var(--gd-chroma-opacity) * 0.6);
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 40%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gd-glass.polished .gd-chroma-fallback { display: none; }
+  .gd-glass.polished::after { opacity: calc(var(--gd-noise-opacity) / 2); }
+}
+
+  /* Demo-specific backdrops used by the in-app GlassSurface demo. These
+     provide the textured/colorful content the glass surfaces blur. */
+  .glass-demo {
+    position: relative;
+    border-radius: 1rem;
+    overflow: visible;
+  }
+
+  .glass-demo__backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-color: #0a0f1c;
+  }
+
+  /* ReactBits-like backdrop: layered radial gradients and subtle noise */
+  .glass-demo__backdrop--reactbits {
+    background-image:
+      radial-gradient(600px circle at 12% 12%, rgba(84,104,255,0.22), transparent 35%),
+      radial-gradient(500px circle at 88% 20%, rgba(34,211,238,0.18), transparent 40%),
+      radial-gradient(700px circle at 70% 85%, rgba(168,85,247,0.14), transparent 50%),
+      linear-gradient(180deg, rgba(10,11,20,0.55), rgba(10,11,20,0.35));
+    background-size: cover;
+    filter: saturate(1.05) contrast(1.02);
+    opacity: 1;
+  }
+
+  /* Lighter backdrop for other demo stripes */
+  .glass-demo__backdrop--soft {
+    background-image: radial-gradient(400px circle at 15% 10%, rgba(168,85,247,0.08), transparent 40%),
+                      radial-gradient(500px circle at 80% 20%, rgba(76,129,255,0.06), transparent 45%);
+    opacity: 0.9;
+  }
+
+  /* Ensure demo content sits above the backdrop */
+  .glass-demo > .glass-demo__content { position: relative; z-index: 10; }
+
+

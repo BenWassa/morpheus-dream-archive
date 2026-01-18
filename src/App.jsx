@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
+import GlassSurfaceDemo from './component/GlassSurfaceDemo';
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
@@ -64,9 +65,19 @@ const Header = ({ currentView, setCurrentView }) => {
         e.preventDefault();
         setCurrentView('add');
       }
+    },
+    {
+      label: 'DEMO',
+      href: '#',
+      onClick: e => {
+        e.preventDefault();
+        setCurrentView('demo');
+      }
     }
   ];
-  const activeIndex = currentView === 'add' ? 1 : 0;
+
+  const viewIndex = { gallery: 0, add: 1, demo: 2 };
+  const activeIndex = viewIndex[currentView] ?? 0;
 
   return (
     <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
@@ -144,9 +155,10 @@ const FragmentCard = ({ text, index }) => (
       width="100%"
       height="auto"
       borderRadius={16}
-      backgroundOpacity={0.18}
+      backgroundOpacity={0.1}
       blur={14}
-      className="relative h-full transition-all duration-300 hover:-translate-y-1"
+      theme="dark"
+      className="relative h-full transition-all duration-300 hover:-translate-y-1 gd-force-reset"
     >
       <div className="relative h-full w-full flex flex-col p-6">
         <div className="flex justify-between items-start mb-4">
@@ -233,7 +245,7 @@ const GalleryView = () => {
                     alt="Dream visualization"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#131b2e] flex items-center justify-center text-slate-700">
+                  <div className="w-full h-full bg-[#131b2e]/60 flex items-center justify-center text-slate-700">
                     <Moon size={48} />
                   </div>
                 )}
@@ -274,11 +286,11 @@ const GalleryView = () => {
       {selectedEntry && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-24 pb-6">
           <div
-            className="absolute inset-0 bg-[#05080f]/95 backdrop-blur-xl animate-fade-in"
+            className="absolute inset-0 bg-[#05080f]/70 backdrop-blur-xl animate-fade-in"
             onClick={() => setSelectedEntry(null)}
           ></div>
 
-          <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c] border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+          <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
             <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex flex-col md:flex-row md:justify-between md:items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50 gap-4">
               <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
                 <div className="flex flex-col">
@@ -361,15 +373,22 @@ const GalleryView = () => {
                 </div>
 
                 {selectedEntry.fragments?.length > 0 && (
-                  <div className="mt-32">
-                    <div className="flex items-end gap-4 mb-12 border-b border-white/5 pb-4">
-                      <h3 className="font-display text-3xl text-white">Memory Fragments</h3>
-                      <span className="text-slate-500 font-mono text-xs pb-1">Unsorted data shards</span>
+                  <div className="mt-32 relative">
+                    {/* Background texture for glassmorphism */}
+                    <div className="absolute inset-0 -inset-x-12 -inset-y-12 opacity-30 pointer-events-none">
+                      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+                      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {selectedEntry.fragments.map((frag, i) => (
-                        <FragmentCard key={i} text={frag} index={i} />
-                      ))}
+                    <div className="relative z-10">
+                      <div className="flex items-end gap-4 mb-12 border-b border-white/5 pb-4">
+                        <h3 className="font-display text-3xl text-white">Memory Fragments</h3>
+                        <span className="text-slate-500 font-mono text-xs pb-1">Unsorted data shards</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {selectedEntry.fragments.map((frag, i) => (
+                          <FragmentCard key={i} text={frag} index={i} />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -563,10 +582,13 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
       {!isParsed ? (
         <div className="space-y-6 animate-fade-in">
-          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-8 shadow-xl">
-            <h3 className="text-purple-300 font-mono text-sm tracking-widest mb-6 flex items-center gap-2 uppercase">
-              <Download size={14} /> Step 1: Structure Dream Data
-            </h3>
+          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-8 shadow-xl relative overflow-hidden">
+            {/* Subtle background for glassmorphism */}
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="relative z-10">
+              <h3 className="text-purple-300 font-mono text-sm tracking-widest mb-6 flex items-center gap-2 uppercase">
+                <Download size={14} /> Step 1: Structure Dream Data
+              </h3>
 
             <textarea
               value={jsonText}
@@ -591,7 +613,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 width="auto"
                 height="auto"
                 borderRadius={9999}
-                backgroundOpacity={0.3}
+                backgroundOpacity={0.12}
                 blur={18}
                 saturation={1.6}
                 useSvg={false}
@@ -606,6 +628,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                   PARSE JSON
                 </button>
               </GlassSurface>
+            </div>
             </div>
           </div>
         </div>
@@ -718,7 +741,11 @@ function App() {
       <Background />
       <Header currentView={currentView} setCurrentView={setCurrentView} />
 
-      <main>{currentView === 'gallery' ? <GalleryView /> : <AddEntryForm />}</main>
+      <main>
+        {currentView === 'gallery' && <GalleryView />}
+        {currentView === 'add' && <AddEntryForm />}
+        {currentView === 'demo' && <GlassSurfaceDemo />}
+      </main>
     </div>
   );
 }

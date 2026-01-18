@@ -10,7 +10,7 @@ const useDarkMode = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDark(mediaQuery.matches);
 
-    const handler = e => setIsDark(e.matches);
+    const handler = (e) => setIsDark(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
@@ -18,6 +18,17 @@ const useDarkMode = () => {
   return isDark;
 };
 
+/**
+ * GlassSurface — glassmorphic container (inspired by ReactBits)
+ *
+ * Notes:
+ * - Props/defaults follow the ReactBits API (see documentation block at top
+ *   of the repo). To remain compatible, `backgroundOpacity` defaults to 0
+ *   (transparent). However, some browsers / ancestor layouts can hide the
+ *   effect; we apply a tiny, non-invasive visual fallback only when
+ *   backdrop-filter is unsupported and `backgroundOpacity === 0` so the
+ *   component doesn't render as a flat grey box.
+ */
 const GlassSurface = ({
   children,
   width = 200,
@@ -26,14 +37,15 @@ const GlassSurface = ({
   borderWidth = 0.07,
   brightness = 50,
   opacity = 0.93,
-  blur = 14,
+  blur = 11,
   displace = 0,
-  backgroundOpacity = 0.12,
-  saturation = 1.4,
+  backgroundOpacity = 0,
+  saturation = 1,
   distortionScale = -180,
   redOffset = 0,
   greenOffset = 10,
   blueOffset = 20,
+  polish = false,
   xChannel = 'R',
   yChannel = 'G',
   mixBlendMode = 'difference',
@@ -44,7 +56,7 @@ const GlassSurface = ({
   highlightOpacity = 0.6,
   borderOpacity = 0.28,
   className = '',
-  style = {}
+  style = {},
 }) => {
   const uniqueId = useId().replace(/:/g, '-');
   const filterId = `glass-filter-${uniqueId}`;
@@ -61,6 +73,10 @@ const GlassSurface = ({
   const gaussianBlurRef = useRef(null);
 
   const isDarkMode = theme === 'auto' ? useDarkMode() : theme === 'dark';
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -99,16 +115,18 @@ const GlassSurface = ({
     [
       { ref: redChannelRef, offset: redOffset },
       { ref: greenChannelRef, offset: greenOffset },
-      { ref: blueChannelRef, offset: blueOffset }
+      { ref: blueChannelRef, offset: blueOffset },
     ].forEach(({ ref, offset }) => {
       if (ref.current) {
-        ref.current.setAttribute('scale', (distortionScale + offset).toString());
+        const extra = polish && !prefersReducedMotion ? 20 : 0;
+        ref.current.setAttribute('scale', (distortionScale + offset + extra).toString());
         ref.current.setAttribute('xChannelSelector', xChannel);
         ref.current.setAttribute('yChannelSelector', yChannel);
       }
     });
 
-    gaussianBlurRef.current?.setAttribute('stdDeviation', displace.toString());
+    const extraBlur = polish && !prefersReducedMotion ? 0.8 : 0;
+    gaussianBlurRef.current?.setAttribute('stdDeviation', (displace + extraBlur).toString());
   }, [
     width,
     height,
@@ -124,7 +142,7 @@ const GlassSurface = ({
     blueOffset,
     xChannel,
     yChannel,
-    mixBlendMode
+    mixBlendMode,
   ]);
 
   useEffect(() => {
@@ -196,54 +214,60 @@ const GlassSurface = ({
       height: typeof height === 'number' ? `${height}px` : height,
       borderRadius: `${borderRadius}px`,
       '--glass-frost': backgroundOpacity,
-      '--glass-saturation': saturation
+      '--glass-saturation': saturation,
     };
 
     const backdropFilterSupported = forceBackdrop || supportsBackdropFilter();
 
+    // When the documented default is fully transparent (backgroundOpacity === 0)
+    // and the browser cannot provide a real backdrop-filter, render a tiny
+    // visible fallback so the component doesn't appear as a flat grey box.
+    // This preserves the ReactBits API while improving local dev/legacy UX.
+    const fallbackWhenUnsupported = 0.06; // very subtle
+    const bgOpacityForRender =
+      !backdropFilterSupported && backgroundOpacity === 0
+        ? fallbackWhenUnsupported
+        : backgroundOpacity;
+
     if (useSvg && svgSupported) {
       return {
         ...baseStyles,
-        background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
+        background: isDarkMode
+          ? `rgba(255, 255, 255, ${bgOpacityForRender})`
+          : `rgba(255, 255, 255, ${bgOpacityForRender})`,
         backdropFilter: `url(#${filterId}) blur(12px) saturate(${saturation})`,
         WebkitBackdropFilter: `url(#${filterId}) blur(12px) saturate(${saturation})`,
         boxShadow: isDarkMode
-          ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
-             0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
+          ? `0 0 2px 1px rgba(255, 255, 255, 0.15) inset,
+             0 0 10px 4px rgba(255, 255, 255, 0.08) inset,
+             0px 4px 16px rgba(0, 0, 0, 0.3),
+             0px 8px 24px rgba(0, 0, 0, 0.2)`
+          : `0 0 2px 1px rgba(0, 0, 0, 0.1) inset,
+             0 0 10px 4px rgba(0, 0, 0, 0.05) inset,
              0px 4px 16px rgba(17, 17, 26, 0.05),
-             0px 8px 24px rgba(17, 17, 26, 0.05),
-             0px 16px 56px rgba(17, 17, 26, 0.05),
-             0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-             0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-             0px 16px 56px rgba(17, 17, 26, 0.05) inset`
-          : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
-             0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
-             0px 4px 16px rgba(17, 17, 26, 0.05),
-             0px 8px 24px rgba(17, 17, 26, 0.05),
-             0px 16px 56px rgba(17, 17, 26, 0.05),
-             0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-             0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-             0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+             0px 8px 24px rgba(17, 17, 26, 0.05)`,
       };
     } else {
       if (isDarkMode) {
         if (!backdropFilterSupported) {
           return {
             ...baseStyles,
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: `rgba(255, 255, 255, ${Math.max(bgOpacityForRender, 0.04)})`,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
+                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.1),
+                        0px 4px 16px rgba(0, 0, 0, 0.3)`,
           };
         } else {
           return {
             ...baseStyles,
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
-            WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: `rgba(255, 255, 255, ${bgOpacityForRender})`,
+            backdropFilter: `blur(${blur}px) saturate(${saturation}) brightness(1.1)`,
+            WebkitBackdropFilter: `blur(${blur}px) saturate(${saturation}) brightness(1.1)`,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
+                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.1),
+                        0px 4px 16px rgba(0, 0, 0, 0.3)`,
           };
         }
       } else {
@@ -253,7 +277,7 @@ const GlassSurface = ({
             background: 'rgba(255, 255, 255, 0.4)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`
+                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`,
           };
         } else {
           return {
@@ -265,7 +289,7 @@ const GlassSurface = ({
             boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
                         0 2px 16px 0 rgba(31, 38, 135, 0.1),
                         inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`
+                        inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`,
           };
         }
       }
@@ -273,7 +297,7 @@ const GlassSurface = ({
   };
 
   const glassSurfaceClasses =
-    'relative isolate flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
+    'gd-glass relative isolate flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
 
   const focusVisibleClasses = isDarkMode
     ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
@@ -282,9 +306,16 @@ const GlassSurface = ({
   return (
     <div
       ref={containerRef}
-      className={`${glassSurfaceClasses} ${focusVisibleClasses} ${className}`}
-      style={getContainerStyles()}
+      data-force-backdrop={forceBackdrop ? 'true' : 'false'}
+      className={`${glassSurfaceClasses} ${polish ? 'polished' : ''} ${forceBackdrop ? 'gd-force-reset' : ''} ${focusVisibleClasses} ${className}`}
+      style={{
+        ...getContainerStyles(),
+        // expose the backdrop for the CSS helper to read and apply
+        '--gd-backdrop': `blur(${blur}px) saturate(${saturation})`,
+      }}
     >
+      {polish && <div className="gd-sheen" aria-hidden="true" />}
+      {polish && <div className="gd-chroma-fallback" aria-hidden="true" />}
       {highlight && (
         <>
           <div
@@ -292,13 +323,13 @@ const GlassSurface = ({
             style={{
               background:
                 'radial-gradient(140% 120% at 20% 0%, rgba(255, 255, 255, 0.35), transparent 60%)',
-              opacity: highlightOpacity
+              opacity: highlightOpacity,
             }}
           />
           <div
             className="pointer-events-none absolute inset-0 rounded-[inherit]"
             style={{
-              boxShadow: `inset 0 0 0 1px rgba(255, 255, 255, ${borderOpacity})`
+              boxShadow: `inset 0 0 0 1px rgba(255, 255, 255, ${borderOpacity})`,
             }}
           />
         </>
@@ -308,10 +339,31 @@ const GlassSurface = ({
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
-            <feImage ref={feImageRef} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
+          <filter
+            id={filterId}
+            colorInterpolationFilters="sRGB"
+            x="0%"
+            y="0%"
+            width="100%"
+            height="100%"
+          >
+            <feImage
+              ref={feImageRef}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="none"
+              result="map"
+            />
 
-            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" id="redchannel" result="dispRed" />
+            <feDisplacementMap
+              ref={redChannelRef}
+              in="SourceGraphic"
+              in2="map"
+              id="redchannel"
+              result="dispRed"
+            />
             <feColorMatrix
               in="dispRed"
               type="matrix"
@@ -339,7 +391,13 @@ const GlassSurface = ({
               result="green"
             />
 
-            <feDisplacementMap ref={blueChannelRef} in="SourceGraphic" in2="map" id="bluechannel" result="dispBlue" />
+            <feDisplacementMap
+              ref={blueChannelRef}
+              in="SourceGraphic"
+              in2="map"
+              id="bluechannel"
+              result="dispBlue"
+            />
             <feColorMatrix
               in="dispBlue"
               type="matrix"
