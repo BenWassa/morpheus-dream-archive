@@ -47,10 +47,12 @@ jobs:
         run: npm ci
       - name: Build Project
         run: npm run build
+      - name: Verify build output
+        run: ls -la docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./docs
 
   deploy:
     environment:
