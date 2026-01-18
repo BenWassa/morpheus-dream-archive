@@ -81,39 +81,30 @@ const Header = ({ currentView, setCurrentView }) => {
   const activeIndex = viewIndex[currentView] ?? 0;
 
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-white/5 transition-all duration-300">
-      <GlassSurfaceReactBits
-        width="100%"
-        height={80}
-        borderRadius={0}
-        backgroundOpacity={0}
-        blur={11}
-        className="backdrop-blur-xl"
-      >
-        <div className="w-full max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-          <div
-            className="flex items-center gap-4 cursor-pointer group"
-            onClick={() => setCurrentView('gallery')}
-          >
-            <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
-              <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
-                MORPHEUS
-              </span>
-              <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
-                Dream Archive
-              </span>
-            </div>
+    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div
+          className="flex items-center gap-4 cursor-pointer group"
+          onClick={() => setCurrentView('gallery')}
+        >
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
           </div>
-
-          <div className="bg-white/5 rounded-full border border-white/5">
-            <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+          <div className="flex flex-col">
+            <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
+              MORPHEUS
+            </span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
+              Dream Archive
+            </span>
           </div>
         </div>
-      </GlassSurfaceReactBits>
+
+        <div className="bg-white/5 rounded-full border border-white/5">
+          <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+        </div>
+      </div>
     </header>
   );
 };
@@ -263,40 +254,31 @@ const GalleryView = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c]/70 via-[#0a0f1c]/25 to-transparent"></div>
               </div>
 
-              <div className="absolute inset-0 z-10 p-6 flex flex-col justify-end">
-                <GlassSurfaceReactBits
-                  width="100%"
-                  height="auto"
-                  borderRadius={24}
-                  backgroundOpacity={0}
-                  blur={11}
-                  className="shadow-2xl"
-                >
-                  <div className="p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase">
-                        {entry.date}
-                      </span>
+              <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end">
+                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase">
+                      {entry.date}
+                    </span>
+                  </div>
+
+                  <h3 className="text-2xl font-display text-white mb-4 leading-tight group-hover:text-cyan-200 transition-colors">
+                    {truncateText(entry.summary, 60)}
+                  </h3>
+
+                  <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                    <div className="flex flex-wrap gap-2">
+                      {entry.keywords?.slice(0, 3).map((k, j) => (
+                        <span key={j} className="text-[10px] text-slate-400 font-mono">
+                          #{k}
+                        </span>
+                      ))}
                     </div>
-
-                    <h3 className="text-xl font-display text-white mb-3 leading-tight group-hover:text-cyan-200 transition-colors">
-                      {truncateText(entry.summary, 60)}
-                    </h3>
-
-                    <div className="space-y-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                      <div className="flex flex-wrap gap-2">
-                        {entry.keywords?.slice(0, 3).map((k, j) => (
-                          <span key={j} className="text-[10px] text-slate-400 font-mono">
-                            #{k}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold tracking-widest uppercase">
-                        Read Entry <ArrowRight size={12} />
-                      </div>
+                    <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold tracking-widest uppercase">
+                      Read Entry <ArrowRight size={12} />
                     </div>
                   </div>
-                </GlassSurfaceReactBits>
+                </div>
               </div>
             </div>
           ))}
@@ -311,45 +293,33 @@ const GalleryView = () => {
           ></div>
 
           <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
-            <GlassSurfaceReactBits
-              width="100%"
-              height="auto"
-              borderRadius={0}
-              backgroundOpacity={0}
-              blur={11}
-              className="z-50 border-b border-white/5"
-            >
-              <div className="w-full p-6 md:px-12 md:py-8 flex flex-col md:flex-row md:justify-between md:items-center transition-all gap-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                      Entry Date
-                    </span>
-                    <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
-                  </div>
-                  <div className="hidden md:block w-px h-8 bg-white/10"></div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedEntry.keywords?.map((k, j) => (
-                      <span
-                        key={j}
-                        className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
-                      >
-                        {k}
-                      </span>
-                    ))}
-                  </div>
+            <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex flex-col md:flex-row md:justify-between md:items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50 gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+                    Entry Date
+                  </span>
+                  <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
                 </div>
-                <button
-                  onClick={() => setSelectedEntry(null)}
-                  className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
-                >
-                  <X
-                    size={24}
-                    className="text-slate-400 group-hover:text-white transition-colors"
-                  />
-                </button>
+                <div className="hidden md:block w-px h-8 bg-white/10"></div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedEntry.keywords?.map((k, j) => (
+                    <span
+                      key={j}
+                      className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </GlassSurfaceReactBits>
+              <button
+                onClick={() => setSelectedEntry(null)}
+                className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
+              >
+                <X size={24} className="text-slate-400 group-hover:text-white transition-colors" />
+              </button>
+            </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
