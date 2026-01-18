@@ -205,7 +205,8 @@ const GalleryView = () => {
 
   const loadEntries = async () => {
     try {
-      const indexResponse = await fetch(`${baseUrl}index.json`);
+      // Add a cache-busting timestamp to ensure we always get the latest entry list
+      const indexResponse = await fetch(`${baseUrl}index.json?v=${Date.now()}`);
       if (!indexResponse.ok) throw new Error('Could not load index');
 
       const indexData = await indexResponse.json();
