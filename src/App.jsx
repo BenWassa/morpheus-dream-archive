@@ -451,7 +451,17 @@ const AddEntryForm = () => {
 
   const parseJson = () => {
     try {
+      // IMPORTANT: preserve the full AI output when parsing.
+      // Do NOT perform any truncation or shortening here —
+      // truncation belongs solely to the UI layer when rendering.
       const parsed = JSON.parse(jsonText);
+
+      // DEV-time sanity check to catch accidental truncation upstream
+      if (import.meta.env.DEV) {
+        if (typeof parsed.summary === 'string' && parsed.summary.endsWith('...')) {
+          console.warn('parseJson: parsed.summary appears truncated — ensure the AI returns full text');
+        }
+      }
       setFormData({
         originalTranscription: parsed.originalTranscription || '',
         summary: parsed.summary || '',
