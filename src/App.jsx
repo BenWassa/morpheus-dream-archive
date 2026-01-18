@@ -13,6 +13,7 @@ import {
   Sparkles,
   Calendar,
   ArrowRight,
+  CheckCircle,
 } from 'lucide-react';
 import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
@@ -49,6 +50,20 @@ const SmartImage = ({ src, alt, className }) => (
       e.currentTarget.src = FALLBACK_IMAGE;
     }}
   />
+);
+
+// Toast Notification Component
+const Toast = ({ isVisible, message }) => (
+  <div
+    className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ease-out ${
+      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+    }`}
+  >
+    <div className="bg-[#131b2e]/95 backdrop-blur-xl border border-cyan-400/30 rounded-xl px-6 py-4 flex items-center gap-3 shadow-2xl shadow-cyan-500/10">
+      <CheckCircle size={18} className="text-cyan-400 flex-shrink-0" />
+      <span className="text-sm font-medium text-cyan-200/90">{message}</span>
+    </div>
+  </div>
 );
 
 // Header
@@ -427,6 +442,12 @@ const AddEntryForm = () => {
   });
   const [scenes, setScenes] = useState([]);
   const [error, setError] = useState('');
+  const [showToastNotification, setShowToastNotification] = useState(false);
+
+  const showToast = (message) => {
+    setShowToastNotification(message);
+    setTimeout(() => setShowToastNotification(false), 3000);
+  };
 
   const parseJson = () => {
     try {
@@ -502,6 +523,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
     try {
       await navigator.clipboard.writeText(prompt);
+      showToast('System prompt copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy prompt:', err);
       const textArea = document.createElement('textarea');
@@ -510,6 +532,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
+      showToast('System prompt copied to clipboard!');
     }
   };
 
@@ -734,6 +757,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
           </div>
         </div>
       )}
+      <Toast isVisible={showToastNotification} message={showToastNotification} />
     </div>
   );
 };
