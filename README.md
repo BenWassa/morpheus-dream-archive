@@ -48,6 +48,22 @@ To view the glassmorphism playground:
 1. Set `VITE_SHOW_DEMO=true` in your `.env` or toggle the `SHOW_DEMO` flag in `App.jsx`.
 2. A "DEMO" option will appear in the navigation.
 
+### App icon
+
+- Source (versioned): `src/assets/app-icon-source.png` (keep a high-res PNG, e.g. 1024×1024).
+- Generated icons are served from `public/icons/` and included in the web manifest.
+- Regenerate icons locally (macOS):
+
+  ```bash
+  npm run icons:generate
+  ```
+
+If you need a multi-size `favicon.ico`, install ImageMagick and run:
+
+```bash
+convert public/icons/favicon-16x16.png public/icons/favicon-32x32.png public/icons/favicon-48x48.png public/icons/favicon.ico
+```
+
 ## Project Structure
 
 - `/public/entries/` - JSON files for each dream entry
