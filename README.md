@@ -95,4 +95,4 @@ Include instructions in README for enabling GitHub Pages:
 - Settings → Pages
 - Source: Deploy from branch
 - Branch: main
-- Folder: / (root)
+- Folder: /docs
