@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
+import GlassSurfaceReactBits from './component/GlassSurfaceReactBits';
 import GlassSurfaceDemo from './component/GlassSurfaceDemo';
 
 const FALLBACK_IMAGE =
@@ -52,58 +53,67 @@ const Header = ({ currentView, setCurrentView }) => {
     {
       label: 'ARCHIVE',
       href: '#',
-      onClick: e => {
+      onClick: (e) => {
         e.preventDefault();
         setCurrentView('gallery');
-      }
+      },
     },
     {
       label: 'NEW ENTRY',
       href: '#',
       icon: <Plus size={14} />,
-      onClick: e => {
+      onClick: (e) => {
         e.preventDefault();
         setCurrentView('add');
-      }
+      },
     },
     {
       label: 'DEMO',
       href: '#',
-      onClick: e => {
+      onClick: (e) => {
         e.preventDefault();
         setCurrentView('demo');
-      }
-    }
+      },
+    },
   ];
 
   const viewIndex = { gallery: 0, add: 1, demo: 2 };
   const activeIndex = viewIndex[currentView] ?? 0;
 
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <div
-          className="flex items-center gap-4 cursor-pointer group"
-          onClick={() => setCurrentView('gallery')}
-        >
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
+    <header className="fixed top-0 w-full z-50 border-b border-white/5 transition-all duration-300">
+      <GlassSurfaceReactBits
+        width="100%"
+        height={80}
+        borderRadius={0}
+        backgroundOpacity={0}
+        blur={14}
+        className="backdrop-blur-xl"
+      >
+        <div className="w-full max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+          <div
+            className="flex items-center gap-4 cursor-pointer group"
+            onClick={() => setCurrentView('gallery')}
+          >
+            <div className="relative">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 w-8 h-8 rounded-full border border-white/20"></div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
+                MORPHEUS
+              </span>
+              <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
+                Dream Archive
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-display tracking-[0.2em] text-white leading-none">
-              MORPHEUS
-            </span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-1">
-              Dream Archive
-            </span>
-          </div>
-        </div>
 
-        <div className="bg-white/5 rounded-full border border-white/5">
-          <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+          <div className="bg-white/5 rounded-full border border-white/5">
+            <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+          </div>
         </div>
-      </div>
+      </GlassSurfaceReactBits>
     </header>
   );
 };
@@ -151,23 +161,24 @@ const RawTranscriptViewer = ({ text }) => {
 const FragmentCard = ({ text, index }) => (
   <div className="relative group perspective-1000">
     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-xl"></div>
-    <GlassSurface
+    <GlassSurfaceReactBits
       width="100%"
       height="auto"
       borderRadius={16}
-      backgroundOpacity={0.1}
-      blur={14}
-      theme="dark"
-      className="relative h-full transition-all duration-300 hover:-translate-y-1 gd-force-reset"
+      backgroundOpacity={0}
+      blur={11}
+      className="relative h-full transition-all duration-300 hover:-translate-y-1"
     >
       <div className="relative h-full w-full flex flex-col p-6">
         <div className="flex justify-between items-start mb-4">
           <Sparkles size={16} className="text-cyan-400 opacity-70" />
           <span className="text-[10px] font-mono text-slate-600">FRAG_0{index + 1}</span>
         </div>
-        <p className="text-slate-300 text-sm leading-relaxed font-light italic font-serif">"{text}"</p>
+        <p className="text-slate-300 text-sm leading-relaxed font-light italic font-serif">
+          "{text}"
+        </p>
       </div>
-    </GlassSurface>
+    </GlassSurfaceReactBits>
   </div>
 );
 
@@ -252,31 +263,40 @@ const GalleryView = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c]/70 via-[#0a0f1c]/25 to-transparent"></div>
               </div>
 
-              <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end">
-                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase">
-                      {entry.date}
-                    </span>
-                  </div>
-
-                  <h3 className="text-2xl font-display text-white mb-4 leading-tight group-hover:text-cyan-200 transition-colors">
-                    {truncateText(entry.summary, 60)}
-                  </h3>
-
-                  <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                    <div className="flex flex-wrap gap-2">
-                      {entry.keywords?.slice(0, 3).map((k, j) => (
-                        <span key={j} className="text-[10px] text-slate-400 font-mono">
-                          #{k}
-                        </span>
-                      ))}
+              <div className="absolute inset-0 z-10 p-6 flex flex-col justify-end">
+                <GlassSurfaceReactBits
+                  width="100%"
+                  height="auto"
+                  borderRadius={24}
+                  backgroundOpacity={0}
+                  blur={11}
+                  className="shadow-2xl"
+                >
+                  <div className="p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase">
+                        {entry.date}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold tracking-widest uppercase">
-                      Read Entry <ArrowRight size={12} />
+
+                    <h3 className="text-xl font-display text-white mb-3 leading-tight group-hover:text-cyan-200 transition-colors">
+                      {truncateText(entry.summary, 60)}
+                    </h3>
+
+                    <div className="space-y-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                      <div className="flex flex-wrap gap-2">
+                        {entry.keywords?.slice(0, 3).map((k, j) => (
+                          <span key={j} className="text-[10px] text-slate-400 font-mono">
+                            #{k}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold tracking-widest uppercase">
+                        Read Entry <ArrowRight size={12} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </GlassSurfaceReactBits>
               </div>
             </div>
           ))}
@@ -291,33 +311,45 @@ const GalleryView = () => {
           ></div>
 
           <div className="relative w-full h-[calc(100vh-8rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
-            <div className="flex-none p-6 md:px-12 md:py-8 border-b border-white/5 flex flex-col md:flex-row md:justify-between md:items-center bg-[#0a0f1c]/50 backdrop-blur-md z-50 gap-4">
-              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                    Entry Date
-                  </span>
-                  <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
-                </div>
-                <div className="hidden md:block w-px h-8 bg-white/10"></div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedEntry.keywords?.map((k, j) => (
-                    <span
-                      key={j}
-                      className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
-                    >
-                      {k}
+            <GlassSurfaceReactBits
+              width="100%"
+              height="auto"
+              borderRadius={0}
+              backgroundOpacity={0}
+              blur={14}
+              className="z-50 border-b border-white/5"
+            >
+              <div className="w-full p-6 md:px-12 md:py-8 flex flex-col md:flex-row md:justify-between md:items-center transition-all gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+                      Entry Date
                     </span>
-                  ))}
+                    <span className="font-mono text-cyan-400 text-lg">{selectedEntry.date}</span>
+                  </div>
+                  <div className="hidden md:block w-px h-8 bg-white/10"></div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedEntry.keywords?.map((k, j) => (
+                      <span
+                        key={j}
+                        className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
+                      >
+                        {k}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <button
+                  onClick={() => setSelectedEntry(null)}
+                  className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
+                >
+                  <X
+                    size={24}
+                    className="text-slate-400 group-hover:text-white transition-colors"
+                  />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedEntry(null)}
-                className="group p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 self-start md:self-auto"
-              >
-                <X size={24} className="text-slate-400 group-hover:text-white transition-colors" />
-              </button>
-            </div>
+            </GlassSurfaceReactBits>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
@@ -382,7 +414,9 @@ const GalleryView = () => {
                     <div className="relative z-10">
                       <div className="flex items-end gap-4 mb-12 border-b border-white/5 pb-4">
                         <h3 className="font-display text-3xl text-white">Memory Fragments</h3>
-                        <span className="text-slate-500 font-mono text-xs pb-1">Unsorted data shards</span>
+                        <span className="text-slate-500 font-mono text-xs pb-1">
+                          Unsorted data shards
+                        </span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {selectedEntry.fragments.map((frag, i) => (
@@ -426,7 +460,9 @@ const AddEntryForm = () => {
       setFormData({
         originalTranscription: parsed.originalTranscription || '',
         summary: parsed.summary || '',
-        keywords: Array.isArray(parsed.keywords) ? parsed.keywords.join(', ') : parsed.keywords || '',
+        keywords: Array.isArray(parsed.keywords)
+          ? parsed.keywords.join(', ')
+          : parsed.keywords || '',
         scenes: parsed.scenes || [],
         fragments: Array.isArray(parsed.fragments) ? parsed.fragments.join('\n') : parsed.fragments,
       });
@@ -590,45 +626,41 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 <Download size={14} /> Step 1: Structure Dream Data
               </h3>
 
-            <textarea
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              placeholder="Paste JSON from AI assistant here..."
-              className="w-full bg-black/30 border border-white/10 rounded-xl p-6 text-sm font-mono text-slate-300 h-64 focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-none custom-scrollbar"
-            />
-            {error && (
-              <p className="text-red-400 text-xs mt-3 flex items-center gap-2">
-                <X size={12} /> {error}
-              </p>
-            )}
+              <textarea
+                value={jsonText}
+                onChange={(e) => setJsonText(e.target.value)}
+                placeholder="Paste JSON from AI assistant here..."
+                className="w-full bg-black/30 border border-white/10 rounded-xl p-6 text-sm font-mono text-slate-300 h-64 focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-none custom-scrollbar"
+              />
+              {error && (
+                <p className="text-red-400 text-xs mt-3 flex items-center gap-2">
+                  <X size={12} /> {error}
+                </p>
+              )}
 
-            <div className="mt-6 flex justify-end gap-4">
-              <button
-                onClick={copyPrompt}
-                className="text-slate-400 hover:text-white px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors flex items-center gap-2"
-              >
-                <Copy size={14} /> Copy System Prompt
-              </button>
-              <GlassSurface
-                width="auto"
-                height="auto"
-                borderRadius={9999}
-                backgroundOpacity={0.12}
-                blur={18}
-                saturation={1.6}
-                useSvg={false}
-                forceBackdrop
-                theme="dark"
-                className="rounded-full"
-              >
+              <div className="mt-6 flex justify-end gap-4">
                 <button
-                  onClick={parseJson}
-                  className="text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+                  onClick={copyPrompt}
+                  className="text-slate-400 hover:text-white px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors flex items-center gap-2"
                 >
-                  PARSE JSON
+                  <Copy size={14} /> Copy System Prompt
                 </button>
-              </GlassSurface>
-            </div>
+                <GlassSurfaceReactBits
+                  width="auto"
+                  height="auto"
+                  borderRadius={9999}
+                  backgroundOpacity={0.12}
+                  blur={18}
+                  className="rounded-full"
+                >
+                  <button
+                    onClick={parseJson}
+                    className="text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+                  >
+                    PARSE JSON
+                  </button>
+                </GlassSurfaceReactBits>
+              </div>
             </div>
           </div>
         </div>
