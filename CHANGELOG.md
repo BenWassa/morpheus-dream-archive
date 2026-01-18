@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-01-18
+
+### Added
+
+- Cache-busting for `index.json` fetch (prevents stale listings in some browsers).
+
+### Changed
+
+- Improve favicon handling: added multi-size `favicon.ico` and updated HTML links for broader browser support.
+
+### Fixed
+
+- Ensure newly added dream entries are included in `public/index.json` and appear on the live site.
+
 ## [1.3.0] - 2026-01-18
 
 ### Added
