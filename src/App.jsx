@@ -19,6 +19,10 @@ import GlassSurface from './component/GlassSurface';
 import GlassSurfaceReactBits from './component/GlassSurfaceReactBits';
 import GlassSurfaceDemo from './component/GlassSurfaceDemo';
 
+// Set to true to enable the development demo page.
+// In professional builds, you can toggle this via VITE_SHOW_DEMO=true in .env
+const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO === 'true' || false;
+
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
 
@@ -67,7 +71,7 @@ const Header = ({ currentView, setCurrentView }) => {
         setCurrentView('add');
       },
     },
-    {
+    SHOW_DEMO && {
       label: 'DEMO',
       href: '#',
       onClick: (e) => {
@@ -75,7 +79,7 @@ const Header = ({ currentView, setCurrentView }) => {
         setCurrentView('demo');
       },
     },
-  ];
+  ].filter(Boolean);
 
   const viewIndex = { gallery: 0, add: 1, demo: 2 };
   const activeIndex = viewIndex[currentView] ?? 0;
@@ -746,7 +750,7 @@ function App() {
       <main>
         {currentView === 'gallery' && <GalleryView />}
         {currentView === 'add' && <AddEntryForm />}
-        {currentView === 'demo' && <GlassSurfaceDemo />}
+        {SHOW_DEMO && currentView === 'demo' && <GlassSurfaceDemo />}
       </main>
     </div>
   );
