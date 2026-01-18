@@ -87,7 +87,7 @@ const Header = ({ currentView, setCurrentView }) => {
         height={80}
         borderRadius={0}
         backgroundOpacity={0}
-        blur={14}
+        blur={11}
         className="backdrop-blur-xl"
       >
         <div className="w-full max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
@@ -316,7 +316,7 @@ const GalleryView = () => {
               height="auto"
               borderRadius={0}
               backgroundOpacity={0}
-              blur={14}
+              blur={11}
               className="z-50 border-b border-white/5"
             >
               <div className="w-full p-6 md:px-12 md:py-8 flex flex-col md:flex-row md:justify-between md:items-center transition-all gap-4">
@@ -649,9 +649,9 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                   width="auto"
                   height="auto"
                   borderRadius={9999}
-                  backgroundOpacity={0.12}
-                  blur={18}
-                  className="rounded-full"
+                  backgroundOpacity={0}
+                  blur={11}
+                  className="rounded-full shadow-xl"
                 >
                   <button
                     onClick={parseJson}
