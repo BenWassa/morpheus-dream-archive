@@ -8,7 +8,7 @@ const GooeyNav = ({
   particleR = 100,
   timeVariance = 300,
   colors = [1, 2, 3, 1, 2, 3, 1, 4],
-  initialActiveIndex = 0
+  initialActiveIndex = 0,
 }) => {
   const containerRef = useRef(null);
   const navRef = useRef(null);
@@ -29,10 +29,10 @@ const GooeyNav = ({
       time: t,
       scale: 1 + noise(0.2),
       color: colors[Math.floor(Math.random() * colors.length)],
-      rotate: rotate > 0 ? (rotate + r / 20) * 10 : (rotate - r / 20) * 10
+      rotate: rotate > 0 ? (rotate + r / 20) * 10 : (rotate - r / 20) * 10,
     };
   };
-  const makeParticles = element => {
+  const makeParticles = (element) => {
     const d = particleDistances;
     const r = particleR;
     const bubbleTime = animationTime * 2 + timeVariance;
@@ -69,7 +69,7 @@ const GooeyNav = ({
       }, 30);
     }
   };
-  const updateEffectPosition = element => {
+  const updateEffectPosition = (element) => {
     if (!containerRef.current || !filterRef.current || !textRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
     const pos = element.getBoundingClientRect();
@@ -77,7 +77,7 @@ const GooeyNav = ({
       left: `${pos.x - containerRect.x}px`,
       top: `${pos.y - containerRect.y}px`,
       width: `${pos.width}px`,
-      height: `${pos.height}px`
+      height: `${pos.height}px`,
     };
     Object.assign(filterRef.current.style, styles);
     Object.assign(textRef.current.style, styles);
@@ -90,7 +90,7 @@ const GooeyNav = ({
     updateEffectPosition(liEl);
     if (filterRef.current) {
       const particles = filterRef.current.querySelectorAll('.particle');
-      particles.forEach(p => filterRef.current.removeChild(p));
+      particles.forEach((p) => filterRef.current.removeChild(p));
     }
     if (textRef.current) {
       textRef.current.classList.remove('active');
@@ -283,7 +283,7 @@ const GooeyNav = ({
             className="flex gap-2 list-none p-1 m-0 relative z-[3] text-xs font-medium tracking-wide"
             style={{
               color: 'white',
-              textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)'
+              textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)',
             }}
           >
             {items.map((item, index) => (
@@ -294,12 +294,12 @@ const GooeyNav = ({
                 }`}
               >
                 <a
-                  onClick={e => {
+                  onClick={(e) => {
                     item.onClick?.(e);
                     handleClick(e, index);
                   }}
                   href={item.href}
-                  onKeyDown={e => handleKeyDown(e, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
                   className="outline-none py-[0.6em] px-[1.1em] inline-flex items-center gap-2"
                 >
                   {item.icon ? <span className="opacity-80">{item.icon}</span> : null}
