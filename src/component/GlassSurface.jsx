@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState, useId } from 'react';
 
 const useDarkMode = () => {

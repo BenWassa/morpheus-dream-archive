@@ -29,18 +29,22 @@ A personal subconscious archive for capturing, organizing, and visualizing dream
 ## New Feature Highlights
 
 ### Glassmorphism System
+
 A custom implementation of sophisticated glass effects inspired by ReactBits, featuring:
+
 - **Refraction & Dispersion**: Real-time SVG filters for realistic lens distortion.
 - **Polish Layers**: Optional grain, sheen, and chromatic fringe for added depth.
 - **Fallbacks**: Graceful degradation for browsers without backdrop-filter or SVG filter support.
-- **Components**: 
+- **Components**:
   - `GlassSurface`: Advanced component with polish features.
   - `GlassSurfaceReactBits`: Verbatim implementation for high-fidelity refraction.
 
 ## Developer Tools
 
 ### Demo Mode
+
 To view the glassmorphism playground:
+
 1. Set `VITE_SHOW_DEMO=true` in your `.env` or toggle the `SHOW_DEMO` flag in `App.jsx`.
 2. A "DEMO" option will appear in the navigation.
 
