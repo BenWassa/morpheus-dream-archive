@@ -285,7 +285,7 @@ const GooeyNav = ({
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="flex gap-4 sm:gap-2 list-none p-1 sm:p-1 m-0 relative z-[3] text-[10px] sm:text-xs font-medium tracking-wide"
+            className="flex gap-2 sm:gap-3 md:gap-4 list-none p-1 sm:p-1.5 m-0 relative z-[3] text-[10px] sm:text-xs md:text-sm font-medium tracking-wide"
             style={{
               color: 'white',
               textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)',
@@ -305,10 +305,10 @@ const GooeyNav = ({
                   }}
                   href={item.href}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="outline-none py-[0.8em] sm:py-[0.6em] px-[1em] sm:px-[1.1em] inline-flex items-center gap-1.5 sm:gap-2"
+                  className="outline-none py-[0.55em] px-[0.9em] sm:py-[0.65em] sm:px-[1.1em] md:py-[0.7em] md:px-[1.25em] inline-flex items-center justify-center gap-2"
                 >
                   {item.icon ? (
-                    <span className="opacity-80 scale-110 sm:scale-100">{item.icon}</span>
+                    <span className="opacity-90 flex items-center sm:hidden">{item.icon}</span>
                   ) : null}
                   <span className={item.icon ? 'hidden sm:inline' : ''}>{item.label}</span>
                 </a>
@@ -318,7 +318,7 @@ const GooeyNav = ({
         </nav>
         <span className="effect filter" ref={filterRef} />
         <span
-          className="effect text text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap inline-flex items-center px-[1em] sm:px-[1.1em] gap-1.5 sm:gap-2"
+          className="effect text text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap inline-flex items-center justify-center px-[1.2em] sm:px-[1.1em] gap-2"
           ref={textRef}
         />
       </div>
