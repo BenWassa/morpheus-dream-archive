@@ -103,7 +103,7 @@ const Header = ({ currentView, setCurrentView }) => {
 
   return (
     <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
         <div
           className="flex items-center gap-2 sm:gap-4 cursor-pointer group"
           onClick={() => setCurrentView('gallery')}
@@ -122,7 +122,7 @@ const Header = ({ currentView, setCurrentView }) => {
           </div>
         </div>
 
-        <div className="bg-white/5 rounded-full border border-white/5 transition-all py-1 px-1 sm:p-0">
+        <div className="bg-white/5 rounded-full border border-white/5 transition-all">
           <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
         </div>
       </div>
@@ -314,7 +314,7 @@ const GalleryView = () => {
             onClick={() => setSelectedEntry(null)}
           ></div>
 
-          <div className="relative w-full h-[calc(100dvh-5rem)] sm:h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl rounded-t-[2rem] md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+          <div className="relative w-full h-[calc(100dvh-5rem)] sm:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl rounded-t-[2rem] md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
             <div className="flex-none p-4 sm:p-6 md:px-12 md:py-8 border-b border-white/5 flex items-center justify-between bg-[#0a0f1c]/50 backdrop-blur-md z-50">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
@@ -335,23 +335,12 @@ const GalleryView = () => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
-                <div className="flex flex-wrap gap-2 mb-8 md:hidden">
-                  {selectedEntry.keywords?.map((k, j) => (
-                    <span
-                      key={j}
-                      className="text-[9px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded"
-                    >
-                      {k}
-                    </span>
-                  ))}
-                </div>
-
                 <div className="mb-12 sm:mb-24 text-center md:text-left">
-                  <div className="hidden md:flex flex-wrap gap-2 mb-8">
+                  <div className="flex flex-wrap gap-2 mb-8 justify-center md:justify-start">
                     {selectedEntry.keywords?.map((k, j) => (
                       <span
                         key={j}
-                        className="text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
+                        className="text-[9px] sm:text-[10px] font-mono text-slate-400 border border-white/10 px-2 py-1 rounded hover:border-purple-500/50 transition-colors"
                       >
                         {k}
                       </span>

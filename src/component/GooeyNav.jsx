@@ -88,8 +88,9 @@ const GooeyNav = ({
     }
   };
   const handleClick = (e, index) => {
-    const liEl = e.currentTarget;
-    if (activeIndex === index) return;
+    // Ensure we are targeting the LI element for position calculation
+    const liEl = e.currentTarget.closest('li');
+    if (!liEl || activeIndex === index) return;
     setActiveIndex(index);
     updateEffectPosition(liEl);
     if (filterRef.current) {
@@ -260,7 +261,7 @@ const GooeyNav = ({
             }
           }
           li.active {
-            color: black;
+            color: transparent;
             text-shadow: none;
           }
           li.active::after {
@@ -317,7 +318,7 @@ const GooeyNav = ({
         </nav>
         <span className="effect filter" ref={filterRef} />
         <span
-          className="effect text text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap inline-flex items-center justify-center gap-1.5 sm:gap-2"
+          className="effect text text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap inline-flex items-center px-[1em] sm:px-[1.1em] gap-1.5 sm:gap-2"
           ref={textRef}
         />
       </div>
