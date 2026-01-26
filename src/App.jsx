@@ -216,7 +216,7 @@ const GalleryView = () => {
 
       for (const id of indexData.entries) {
         try {
-          const res = await fetch(`${baseUrl}entries/${id}.json`);
+          const res = await fetch(`${baseUrl}entries/${id}.json?v=${Date.now()}`);
           if (res.ok) {
             const data = await res.json();
             loadedEntries.push(data);
