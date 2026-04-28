@@ -33,6 +33,13 @@ const GooeyNav = ({
     };
   };
   const makeParticles = (element) => {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
     const d = particleDistances;
     const r = particleR;
     const bubbleTime = animationTime * 2 + timeVariance;
@@ -285,7 +292,7 @@ const GooeyNav = ({
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="flex gap-2 sm:gap-3 md:gap-4 list-none p-1 sm:p-1.5 m-0 relative z-[3] text-[10px] sm:text-xs md:text-sm font-medium tracking-wide"
+            className="flex gap-2 sm:gap-3 md:gap-4 list-none p-1 sm:p-1.5 m-0 relative z-[3] text-xs sm:text-sm md:text-sm font-medium tracking-wide"
             style={{
               color: 'white',
               textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)',
@@ -305,7 +312,7 @@ const GooeyNav = ({
                   }}
                   href={item.href}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="outline-none py-[0.55em] px-[0.9em] sm:py-[0.65em] sm:px-[1.1em] md:py-[0.7em] md:px-[1.25em] inline-flex items-center justify-center gap-2"
+                  className="outline-none py-[0.85em] px-[1.1em] sm:py-[0.85em] sm:px-[1.25em] md:py-[0.85em] md:px-[1.4em] min-h-[44px] inline-flex items-center justify-center gap-2"
                 >
                   {item.icon ? (
                     <span className="opacity-90 flex items-center sm:hidden">{item.icon}</span>

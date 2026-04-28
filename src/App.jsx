@@ -41,11 +41,16 @@ const Background = () => (
 );
 
 // Image Component with Fallback
-const SmartImage = ({ src, alt, className }) => (
+const SmartImage = ({ src, alt, className, width, height, loading = 'lazy', fetchPriority }) => (
   <img
     src={src}
     alt={alt}
     className={className}
+    width={width}
+    height={height}
+    loading={loading}
+    decoding="async"
+    fetchpriority={fetchPriority}
     onError={(e) => {
       e.currentTarget.src = FALLBACK_IMAGE;
     }}
@@ -102,7 +107,7 @@ const Header = ({ currentView, setCurrentView }) => {
   const activeIndex = viewIndex[currentView] ?? 0;
 
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300">
+    <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0a0f1c]/80 backdrop-blur-xl transition-all duration-300 pt-safe pl-safe pr-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
         <div
           className="flex items-center gap-2 sm:gap-4 cursor-pointer group"
@@ -259,7 +264,7 @@ const GalleryView = () => {
             <div
               key={i}
               onClick={() => setSelectedEntry(entry)}
-              className="group relative h-[380px] sm:h-[450px] md:h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border border-white/5 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
+              className="group relative aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[500px] rounded-3xl overflow-hidden cursor-pointer bg-slate-900 border border-white/5 hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-900/20"
             >
               <div className="absolute inset-0 z-0">
                 {entry.scenes?.[0]?.image ? (
@@ -267,6 +272,10 @@ const GalleryView = () => {
                     src={`${baseUrl}${entry.scenes[0].image}`}
                     className="w-full h-full object-cover opacity-100 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
                     alt="Dream visualization"
+                    width={800}
+                    height={1000}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : undefined}
                   />
                 ) : (
                   <div className="w-full h-full bg-[#131b2e]/60 flex items-center justify-center text-slate-700">
@@ -288,10 +297,13 @@ const GalleryView = () => {
                     {truncateText(entry.summary, 60)}
                   </h3>
 
-                  <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                  <div className="card-meta space-y-4 delay-100">
                     <div className="flex flex-wrap gap-2">
                       {entry.keywords?.slice(0, 3).map((k, j) => (
-                        <span key={j} className="text-[10px] text-slate-400 font-mono">
+                        <span
+                          key={j}
+                          className="text-[11px] sm:text-[10px] text-slate-300 font-mono"
+                        >
                           #{k}
                         </span>
                       ))}
@@ -308,13 +320,13 @@ const GalleryView = () => {
       )}
 
       {selectedEntry && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-start justify-center pt-16 sm:pt-24 pb-0 sm:pb-8">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-start justify-center pt-[max(env(safe-area-inset-top),4rem)] sm:pt-24 pb-0 sm:pb-8">
           <div
             className="absolute inset-0 bg-[#05080f]/70 backdrop-blur-xl animate-fade-in"
             onClick={() => setSelectedEntry(null)}
           ></div>
 
-          <div className="relative w-full h-[calc(100dvh-5rem)] sm:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl rounded-t-[2rem] md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+          <div className="relative w-full h-[calc(100dvh-max(env(safe-area-inset-top),4rem))] sm:h-[calc(100vh-7rem)] md:w-[95vw] md:max-w-6xl rounded-t-[2rem] md:rounded-[2rem] bg-[#0a0f1c]/80 border border-white/5 shadow-2xl overflow-hidden flex flex-col animate-slide-up">
             <div className="flex-none p-4 sm:p-6 md:px-12 md:py-8 border-b border-white/5 flex items-center justify-between bg-[#0a0f1c]/50 backdrop-blur-md z-50">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
@@ -327,13 +339,14 @@ const GalleryView = () => {
 
               <button
                 onClick={() => setSelectedEntry(null)}
-                className="group p-2 sm:p-3 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                aria-label="Close entry"
+                className="group p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
               >
-                <X size={20} className="text-slate-400 group-hover:text-white transition-colors" />
+                <X size={22} className="text-slate-400 group-hover:text-white transition-colors" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pb-safe">
               <div className="p-6 md:p-12 lg:p-20 max-w-5xl mx-auto">
                 <div className="mb-12 sm:mb-24 text-center md:text-left">
                   <div className="flex flex-wrap gap-2 mb-8 justify-center md:justify-start">
@@ -622,15 +635,15 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
   };
 
   return (
-    <div className="relative z-10 pt-32 pb-20 px-6 max-w-4xl mx-auto min-h-screen">
-      <div className="flex items-center gap-4 mb-12">
-        <div className="h-12 w-1 bg-purple-500 rounded-full"></div>
-        <h2 className="text-4xl font-display text-white">Record Entry</h2>
+    <div className="relative z-10 pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-4xl mx-auto min-h-screen pl-safe pr-safe">
+      <div className="flex items-center gap-4 mb-8 sm:mb-12">
+        <div className="h-10 sm:h-12 w-1 bg-purple-500 rounded-full"></div>
+        <h2 className="text-3xl sm:text-4xl font-display text-white">Record Entry</h2>
       </div>
 
       {!isParsed ? (
         <div className="space-y-6 animate-fade-in">
-          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-8 shadow-xl relative overflow-hidden">
+          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-4 sm:p-8 shadow-xl relative overflow-hidden">
             {/* Subtle background for glassmorphism */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="relative z-10">
@@ -642,7 +655,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 value={jsonText}
                 onChange={(e) => setJsonText(e.target.value)}
                 placeholder="Paste JSON from AI assistant here..."
-                className="w-full bg-black/30 border border-white/10 rounded-xl p-6 text-sm font-mono text-slate-300 h-64 focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-none custom-scrollbar"
+                className="w-full bg-black/30 border border-white/10 rounded-xl p-4 sm:p-6 text-sm font-mono text-slate-300 min-h-[12rem] sm:min-h-[16rem] focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-y custom-scrollbar"
               />
               {error && (
                 <p className="text-red-400 text-xs mt-3 flex items-center gap-2">
@@ -650,10 +663,10 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 </p>
               )}
 
-              <div className="mt-6 flex justify-end gap-4">
+              <div className="mt-6 flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
                 <button
                   onClick={copyPrompt}
-                  className="text-slate-400 hover:text-white px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors flex items-center gap-2"
+                  className="text-slate-400 hover:text-white px-4 py-3 min-h-[44px] text-xs font-medium uppercase tracking-wider transition-colors flex items-center justify-center gap-2 rounded-full border border-white/10 hover:border-white/20"
                 >
                   <Copy size={14} /> Copy System Prompt
                 </button>
@@ -678,12 +691,12 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
         </div>
       ) : (
         <div className="space-y-8 animate-fade-in">
-          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-8">
-            <div className="flex justify-between items-center mb-8 pb-8 border-b border-white/5">
+          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-4 sm:p-8">
+            <div className="flex justify-between items-center mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-white/5">
               <h3 className="text-xl text-white font-display">Review & Assets</h3>
               <button
                 onClick={() => setIsParsed(false)}
-                className="text-xs text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors"
+                className="text-xs text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors px-3 py-2 min-h-[44px]"
               >
                 Reset Form
               </button>
@@ -724,7 +737,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 {scenes.map((scene, idx) => (
                   <div
                     key={idx}
-                    className="bg-black/20 rounded-xl p-6 border border-white/5 hover:border-white/10 transition-colors"
+                    className="bg-black/20 rounded-xl p-4 sm:p-6 border border-white/5 hover:border-white/10 transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6">
                       <div className="flex-1">
@@ -736,8 +749,8 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                           {scene.text}
                         </p>
                       </div>
-                      <div className="flex-shrink-0">
-                        <label className="cursor-pointer group relative block h-24 w-24 rounded-lg overflow-hidden bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all">
+                      <div className="flex-shrink-0 self-stretch sm:self-auto">
+                        <label className="cursor-pointer group relative flex items-center justify-center h-32 w-full sm:h-24 sm:w-24 rounded-lg overflow-hidden bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all min-h-[44px]">
                           {scene.preview ? (
                             <img src={scene.preview} className="h-full w-full object-cover" />
                           ) : (
