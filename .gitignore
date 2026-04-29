@@ -36,3 +36,7 @@ graphify-out/cache/
 # !images/.gitkeep
 # entries/*
 # !entries/.gitkeep
+
+
+/.agents
+/.claude
