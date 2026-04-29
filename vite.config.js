@@ -8,13 +8,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      base: '/morpheus-dream-archive/',
+      base: '/',
       manifestFilename: 'manifest.webmanifest',
       manifest: false,
       includeAssets: ['icons/*.png', 'icons/favicon.ico'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        navigateFallback: '/morpheus-dream-archive/index.html',
+        navigateFallback: '/index.html',
         ignoreURLParametersMatching: [/^v$/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
@@ -48,7 +48,7 @@ export default defineConfig({
       },
     }),
   ],
-  base: '/morpheus-dream-archive/',
+  base: '/',
   build: {
     outDir: 'docs',
   },
