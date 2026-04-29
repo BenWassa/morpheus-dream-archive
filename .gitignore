@@ -20,6 +20,11 @@ node_modules/
 .env.local
 .env.*.local
 
+# Firebase Admin SDK credentials
+secrets/
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+
 # graphify scratch/cache output
 .graphify_*
 graphify-out/.graphify_*
