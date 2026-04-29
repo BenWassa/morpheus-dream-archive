@@ -14,11 +14,25 @@ import {
   Calendar,
   ArrowRight,
   CheckCircle,
+  LogOut,
+  Upload,
 } from 'lucide-react';
 import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
 import GlassSurfaceReactBits from './component/GlassSurfaceReactBits';
 import GlassSurfaceDemo from './component/GlassSurfaceDemo';
+import { db, storage, isConfigured, signInWithGoogle, signOutUser } from './firebase.js';
+import {
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAuth } from './hooks/useAuth.js';
 
 // Set to true to enable the development demo page.
 // In professional builds, you can toggle this via VITE_SHOW_DEMO=true in .env
@@ -72,7 +86,7 @@ const Toast = ({ isVisible, message }) => (
 );
 
 // Header
-const Header = ({ currentView, setCurrentView }) => {
+const Header = ({ currentView, setCurrentView, user }) => {
   const navItems = [
     {
       label: 'ARCHIVE',
@@ -127,8 +141,20 @@ const Header = ({ currentView, setCurrentView }) => {
           </div>
         </div>
 
-        <div className="bg-white/5 rounded-full border border-white/5 transition-all">
-          <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+        <div className="flex items-center gap-3">
+          {isConfigured && user && (
+            <button
+              onClick={signOutUser}
+              title="Sign out"
+              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors text-[10px] uppercase tracking-widest font-mono px-2 py-1"
+            >
+              <LogOut size={13} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          )}
+          <div className="bg-white/5 rounded-full border border-white/5 transition-all">
+            <GooeyNav items={navItems} initialActiveIndex={activeIndex} />
+          </div>
         </div>
       </div>
     </header>
@@ -199,8 +225,15 @@ const FragmentCard = ({ text, index }) => (
   </div>
 );
 
+// Resolve image URL: Firebase entries have full HTTPS URLs; static entries have relative paths.
+const resolveImageUrl = (imagePath, baseUrl) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${baseUrl}${imagePath}`;
+};
+
 /* --- GALLERY VIEW --- */
-const GalleryView = () => {
+const GalleryView = ({ user }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -208,36 +241,48 @@ const GalleryView = () => {
 
   useEffect(() => {
     loadEntries();
-  }, []);
+  }, [user]); // re-fetch when auth state changes
 
   const loadEntries = async () => {
+    setLoading(true);
+    const allEntries = [];
+
+    // Firebase branch: fetch from Firestore when signed in
+    if (isConfigured && user) {
+      try {
+        const q = query(collection(db, 'entries'), orderBy('date', 'desc'));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach((d) => allEntries.push(d.data()));
+      } catch (err) {
+        console.warn('Firestore unavailable, falling back to static only:', err);
+      }
+    }
+
+    // Static branch: fetch from public/ files, skip dates already loaded from Firestore
     try {
-      // Add a cache-busting timestamp to ensure we always get the latest entry list
       const indexResponse = await fetch(`${baseUrl}index.json?v=${Date.now()}`);
-      if (!indexResponse.ok) throw new Error('Could not load index');
-
-      const indexData = await indexResponse.json();
-      const loadedEntries = [];
-
-      for (const id of indexData.entries) {
-        try {
-          const res = await fetch(`${baseUrl}entries/${id}.json?v=${Date.now()}`);
-          if (res.ok) {
-            const data = await res.json();
-            loadedEntries.push(data);
+      if (indexResponse.ok) {
+        const indexData = await indexResponse.json();
+        for (const id of indexData.entries) {
+          if (allEntries.some((e) => e.date === id)) continue;
+          try {
+            const res = await fetch(`${baseUrl}entries/${id}.json?v=${Date.now()}`);
+            if (res.ok) {
+              const data = await res.json();
+              allEntries.push(data);
+            }
+          } catch (e) {
+            console.warn(e);
           }
-        } catch (e) {
-          console.warn(e);
         }
       }
-
-      loadedEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setEntries(loadedEntries);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
+
+    allEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    setEntries(allEntries);
+    setLoading(false);
   };
 
   return (
@@ -269,7 +314,7 @@ const GalleryView = () => {
               <div className="absolute inset-0 z-0">
                 {entry.scenes?.[0]?.image ? (
                   <SmartImage
-                    src={`${baseUrl}${entry.scenes[0].image}`}
+                    src={resolveImageUrl(entry.scenes[0].image, baseUrl)}
                     className="w-full h-full object-cover opacity-100 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
                     alt="Dream visualization"
                     width={800}
@@ -395,7 +440,7 @@ const GalleryView = () => {
                               <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-cyan-500/20 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
                               <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-2xl">
                                 <SmartImage
-                                  src={`${baseUrl}${scene.image}`}
+                                  src={resolveImageUrl(scene.image, baseUrl)}
                                   alt={`Scene ${sceneNumber}`}
                                   className="w-full h-auto object-cover hover:scale-105 transition-transform duration-1000"
                                 />
@@ -445,7 +490,7 @@ const GalleryView = () => {
 };
 
 /* --- ADD ENTRY FORM (UI Update) --- */
-const AddEntryForm = () => {
+const AddEntryForm = ({ user }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [jsonText, setJsonText] = useState('');
   const [isParsed, setIsParsed] = useState(false);
@@ -459,6 +504,7 @@ const AddEntryForm = () => {
   const [scenes, setScenes] = useState([]);
   const [error, setError] = useState('');
   const [showToastNotification, setShowToastNotification] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const showToast = (message) => {
     setShowToastNotification(message);
@@ -634,6 +680,43 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
     saveAs(content, `dream-${date}.zip`);
   };
 
+  const uploadToFirebase = async () => {
+    if (!user) return;
+    setIsUploading(true);
+    try {
+      const scenesWithUrls = await Promise.all(
+        scenes.map(async (scene, i) => {
+          if (!scene.image) return { text: scene.text, image: null };
+          const resizedBlob = await resizeImage(scene.image);
+          const paddedIndex = String(i + 1).padStart(2, '0');
+          const storageRef = ref(storage, `images/${date}-${paddedIndex}.jpg`);
+          await uploadBytes(storageRef, resizedBlob, { contentType: 'image/jpeg' });
+          const downloadURL = await getDownloadURL(storageRef);
+          return { text: scene.text, image: downloadURL };
+        })
+      );
+
+      const entryDoc = {
+        date,
+        originalTranscription: formData.originalTranscription,
+        summary: formData.summary,
+        keywords: formData.keywords.split(',').map((k) => k.trim()),
+        fragments: formData.fragments.split('\n').filter((f) => f.trim()),
+        scenes: scenesWithUrls,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, 'entries', date), entryDoc);
+      showToast('Entry published to archive.');
+    } catch (err) {
+      console.error('Upload failed:', err);
+      showToast('Upload failed — use Export Bundle as a backup.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="relative z-10 pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-4xl mx-auto min-h-screen pl-safe pr-safe">
       <div className="flex items-center gap-4 mb-8 sm:mb-12">
@@ -772,15 +855,40 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 ))}
               </div>
 
-              <div className="pt-8 border-t border-white/10">
+              <div className="pt-8 border-t border-white/10 space-y-3">
+                {isConfigured && user ? (
+                  <button
+                    onClick={uploadToFirebase}
+                    disabled={isUploading}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold tracking-widest uppercase text-sm shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-2"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        Transmitting...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={14} />
+                        Publish to Archive
+                      </>
+                    )}
+                  </button>
+                ) : null}
                 <button
                   onClick={generateZip}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white py-4 rounded-xl font-bold tracking-widest uppercase text-sm shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01]"
+                  className={`w-full py-4 rounded-xl font-bold tracking-widest uppercase text-sm transition-all transform hover:scale-[1.01] ${
+                    isConfigured && user
+                      ? 'bg-transparent border border-white/10 text-slate-400 hover:text-white hover:border-white/30'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20'
+                  }`}
                 >
-                  Download Entry Bundle
+                  Export Bundle
                 </button>
-                <p className="text-center text-slate-500 text-xs mt-4">
-                  Extract the zip to your project root. Add the entry ID to index.json manually.
+                <p className="text-center text-slate-500 text-xs pt-1">
+                  {isConfigured && user
+                    ? 'Publish to Archive uploads directly to Firebase. Export Bundle downloads a local zip backup.'
+                    : 'Extracts to project root. Add date to index.json manually.'}
                 </p>
               </div>
             </div>
@@ -792,19 +900,73 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
   );
 };
 
+/* --- AUTH VIEW --- */
+const AuthView = ({ onSuccess }) => {
+  const [authError, setAuthError] = useState('');
+
+  const handleGoogleSignIn = async () => {
+    setAuthError('');
+    try {
+      await signInWithGoogle();
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      setAuthError('Sign-in failed. Please try again.');
+    }
+  };
+
+  return (
+    <div className="relative z-10 pt-32 pb-20 px-6 max-w-4xl mx-auto min-h-screen flex flex-col items-center justify-center gap-8">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500/20 to-cyan-400/20 border border-white/10 flex items-center justify-center">
+          <Moon size={28} className="text-purple-400" />
+        </div>
+        <h2 className="text-3xl sm:text-4xl font-display text-white tracking-tight">
+          Access Required
+        </h2>
+        <p className="text-slate-400 font-mono text-xs tracking-widest uppercase max-w-xs">
+          Sign in to publish entries to the archive
+        </p>
+      </div>
+      <GlassSurfaceReactBits
+        width="auto"
+        height="auto"
+        borderRadius={9999}
+        backgroundOpacity={0}
+        blur={11}
+        className="rounded-full shadow-xl"
+      >
+        <button
+          onClick={handleGoogleSignIn}
+          className="text-white px-10 py-4 rounded-full text-sm font-bold tracking-widest uppercase transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+        >
+          Sign In with Google
+        </button>
+      </GlassSurfaceReactBits>
+      {authError && <p className="text-red-400 text-xs font-mono">{authError}</p>}
+    </div>
+  );
+};
+
 /* --- MAIN APP --- */
 function App() {
   const [currentView, setCurrentView] = useState('gallery');
+  const { user } = useAuth();
+
+  // If the user tries to add an entry without being signed in (and Firebase is configured),
+  // show the auth screen instead.
+  const effectiveView = currentView === 'add' && isConfigured && !user ? 'auth' : currentView;
 
   return (
     <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
       <Background />
-      <Header currentView={currentView} setCurrentView={setCurrentView} />
+      <Header currentView={currentView} setCurrentView={setCurrentView} user={user} />
 
       <main>
-        {currentView === 'gallery' && <GalleryView />}
-        {currentView === 'add' && <AddEntryForm />}
-        {SHOW_DEMO && currentView === 'demo' && <GlassSurfaceDemo />}
+        {effectiveView === 'gallery' && <GalleryView user={user} />}
+        {effectiveView === 'add' && <AddEntryForm user={user} />}
+        {effectiveView === 'auth' && <AuthView onSuccess={() => setCurrentView('add')} />}
+        {SHOW_DEMO && effectiveView === 'demo' && <GlassSurfaceDemo />}
       </main>
     </div>
   );

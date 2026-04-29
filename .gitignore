@@ -15,6 +15,11 @@
 # Development
 node_modules/
 
+# Environment variables (Firebase config)
+.env
+.env.local
+.env.*.local
+
 # graphify scratch/cache output
 .graphify_*
 graphify-out/.graphify_*
