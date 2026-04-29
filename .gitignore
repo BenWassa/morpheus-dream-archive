@@ -9,8 +9,16 @@
 *.tmp
 *.log
 
+# Local agent state
+.codex/
+
 # Development
 node_modules/
+
+# graphify scratch/cache output
+.graphify_*
+graphify-out/.graphify_*
+graphify-out/cache/
 
 # Keep images and entries folders but ignore their contents during initial setup
 # Remove these lines once real content is added:
