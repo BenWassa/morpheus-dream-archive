@@ -328,7 +328,7 @@ const Header = ({ currentView, setCurrentView, user, profilePhotoUrl, onOpenProf
             <button
               onClick={onOpenProfile}
               title="Open profile"
-              className="rounded-full hover:border-cyan-300/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/70 transition-colors"
+              className="flex-shrink-0 rounded-full border border-white/20 hover:border-cyan-300/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/70 transition-colors"
               aria-label="Open profile"
             >
               <Avatar user={user} photoUrl={profilePhotoUrl} />
@@ -493,7 +493,7 @@ const GalleryView = ({ user, setCurrentView, onboardingState, onSkipOnboarding }
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         </div>
       ) : entries.length === 0 ? (
-        <div className="max-w-5xl relative">
+        <div className="max-w-5xl relative overflow-hidden">
           {/* Atmospheric background glows */}
           <div className="absolute -inset-12 opacity-30 pointer-events-none">
             <div className="absolute top-1/4 left-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl"></div>
@@ -1625,6 +1625,7 @@ function App() {
   const completeOnboarding = () => {
     if (onboardingState.completed) return;
     persistOnboarding({ completed: true, dismissed: true });
+    setCurrentView('gallery');
   };
 
   const skipOnboarding = () => {
