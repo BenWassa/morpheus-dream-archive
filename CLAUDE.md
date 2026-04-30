@@ -20,6 +20,7 @@ No test suite exists. `npm run check` is the closest equivalent to CI verificati
 Single-page React app (no router) with view state managed in `App.jsx` via `currentView` (`'gallery'` | `'add'` | `'demo'`).
 
 **Data model** — All dream data is static JSON served from `public/`:
+
 - `public/index.json` — master list of entry IDs (dates as strings, e.g. `"2024-01-21"`)
 - `public/entries/<date>.json` — one file per dream entry with fields: `date`, `summary`, `keywords`, `scenes[]`, `fragments[]`, `originalTranscription`
 - `public/images/<date>-01.jpg` etc. — scene images referenced inside entry JSON
@@ -27,12 +28,14 @@ Single-page React app (no router) with view state managed in `App.jsx` via `curr
 `GalleryView` fetches `index.json` then each entry JSON at runtime with cache-busting (`?v=Date.now()`). There is no backend.
 
 **Entry creation workflow** — `AddEntryForm` in `App.jsx`:
+
 1. User pastes AI-generated JSON (from the built-in prompt template)
 2. App parses it and lets user attach scene images
 3. "Download Entry Bundle" generates a `.zip` (via JSZip + FileSaver.js) containing the entry JSON and resized images
 4. User extracts the zip to `public/`, then **manually** adds the date to `public/index.json`
 
 **Glassmorphism components** in `src/component/`:
+
 - `GlassSurfaceReactBits.jsx` — primary glass component; used throughout for cards and buttons; relies on SVG filters for refraction/dispersion
 - `GlassSurface.jsx` — extended variant with grain, sheen, and chromatic fringe polish layers
 - `GlassSurfaceDemo.jsx` — dev-only playground; only rendered when `VITE_SHOW_DEMO=true`
