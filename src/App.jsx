@@ -49,6 +49,21 @@ const FALLBACK_IMAGE =
 
 const ONBOARDING_STORAGE_KEY = 'morpheus-onboarding-v1';
 
+const readOnboardingState = () => {
+  try {
+    const stored = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!stored) return { completed: false, dismissed: false };
+    const parsed = JSON.parse(stored);
+    return {
+      completed: Boolean(parsed.completed),
+      dismissed: Boolean(parsed.dismissed),
+    };
+  } catch (error) {
+    console.warn('Unable to restore onboarding state', error);
+    return { completed: false, dismissed: false };
+  }
+};
+
 /* --- UTILITIES --- */
 const truncateText = (text, maxLength) => {
   if (!text || text.length <= maxLength) return text;
@@ -400,13 +415,7 @@ const resolveImageUrl = (imagePath, baseUrl) => {
 };
 
 /* --- GALLERY VIEW --- */
-const GalleryView = ({
-  user,
-  setCurrentView,
-  onboardingState,
-  onCompleteOnboarding,
-  onSkipOnboarding,
-}) => {
+const GalleryView = ({ user, setCurrentView, onboardingState, onSkipOnboarding }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -415,12 +424,6 @@ const GalleryView = ({
   useEffect(() => {
     loadEntries();
   }, [user]); // re-fetch when auth state changes
-
-  useEffect(() => {
-    if (!loading && entries.length > 0 && !onboardingState.completed) {
-      onCompleteOnboarding();
-    }
-  }, [entries.length, loading, onboardingState.completed, onCompleteOnboarding]);
 
   const loadEntries = async () => {
     setLoading(true);
@@ -1565,8 +1568,10 @@ const ProfileModal = ({ user, profilePhotoUrl, isOpen, onClose, onProfilePhotoCh
 
 /* --- MAIN APP --- */
 function App() {
-  const [currentView, setCurrentView] = useState('gallery');
-  const [onboardingState, setOnboardingState] = useState({ completed: false, dismissed: false });
+  const [onboardingState, setOnboardingState] = useState(readOnboardingState);
+  const [currentView, setCurrentView] = useState(() =>
+    readOnboardingState().completed ? 'gallery' : 'add'
+  );
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
   const { user, loading } = useAuth();
@@ -1574,21 +1579,6 @@ function App() {
   useEffect(() => {
     setProfilePhotoUrl(user?.photoURL || '');
   }, [user]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setOnboardingState({
-          completed: Boolean(parsed.completed),
-          dismissed: Boolean(parsed.dismissed),
-        });
-      }
-    } catch (error) {
-      console.warn('Unable to restore onboarding state', error);
-    }
-  }, []);
 
   const persistOnboarding = (nextState) => {
     setOnboardingState(nextState);
@@ -1642,7 +1632,6 @@ function App() {
             user={user}
             setCurrentView={setCurrentView}
             onboardingState={onboardingState}
-            onCompleteOnboarding={completeOnboarding}
             onSkipOnboarding={skipOnboarding}
           />
         )}
