@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import {
@@ -21,7 +21,7 @@ import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
 import GlassSurfaceReactBits from './component/GlassSurfaceReactBits';
 import GlassSurfaceDemo from './component/GlassSurfaceDemo';
-import { db, storage, isConfigured, signInWithGoogle, signOutUser } from './firebase.js';
+import { db, storage, functions, isConfigured, signInWithGoogle, signOutUser } from './firebase.js';
 import {
   doc,
   setDoc,
@@ -32,11 +32,14 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { httpsCallable } from 'firebase/functions';
 import { useAuth } from './hooks/useAuth.js';
 
 // Set to true to enable the development demo page.
 // In professional builds, you can toggle this via VITE_SHOW_DEMO=true in .env
 const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO === 'true' || false;
+const ENABLE_STATIC_ENTRY_FALLBACK =
+  import.meta.env.VITE_ENABLE_STATIC_ENTRY_FALLBACK === 'true' || !isConfigured;
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
@@ -47,6 +50,15 @@ const ONBOARDING_STORAGE_KEY = 'morpheus-onboarding-v1';
 const truncateText = (text, maxLength) => {
   if (!text || text.length <= maxLength) return text;
   return text.substring(0, maxLength).trim() + '...';
+};
+
+const getUserInitials = (user) => {
+  const source = user?.displayName || user?.email || '?';
+  const words = source.replace(/@.*/, '').split(/\s+/).filter(Boolean);
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join('');
 };
 
 /* --- UI COMPONENTS --- */
@@ -169,7 +181,7 @@ const Toast = ({ isVisible, message }) => (
 );
 
 // Header
-const Header = ({ currentView, setCurrentView, user }) => {
+const Header = ({ currentView, setCurrentView, user, onOpenProfile }) => {
   const navItems = [
     {
       label: 'ARCHIVE',
@@ -227,12 +239,16 @@ const Header = ({ currentView, setCurrentView, user }) => {
         <div className="flex items-center gap-3">
           {isConfigured && user && (
             <button
-              onClick={signOutUser}
-              title="Sign out"
-              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors text-[10px] uppercase tracking-widest font-mono px-2 py-1"
+              onClick={onOpenProfile}
+              title="Open profile"
+              className="h-8 w-8 rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center text-[10px] font-semibold tracking-widest text-cyan-100 hover:border-cyan-300/50 transition-colors"
+              aria-label="Open profile"
             >
-              <LogOut size={13} />
-              <span className="hidden sm:inline">Sign out</span>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span>{getUserInitials(user)}</span>
+              )}
             </button>
           )}
           <div className="bg-white/5 rounded-full border border-white/5 transition-all">
@@ -345,7 +361,7 @@ const GalleryView = ({
     // Firebase branch: fetch from Firestore when signed in
     if (isConfigured && user) {
       try {
-        const q = query(collection(db, 'entries'), orderBy('date', 'desc'));
+        const q = query(collection(db, 'users', user.uid, 'entries'), orderBy('date', 'desc'));
         const snapshot = await getDocs(q);
         snapshot.docs.forEach((d) => allEntries.push(d.data()));
       } catch (err) {
@@ -354,25 +370,27 @@ const GalleryView = ({
     }
 
     // Static branch: fetch from public/ files, skip dates already loaded from Firestore
-    try {
-      const indexResponse = await fetch(`${baseUrl}index.json?v=${Date.now()}`);
-      if (indexResponse.ok) {
-        const indexData = await indexResponse.json();
-        for (const id of indexData.entries) {
-          if (allEntries.some((e) => e.date === id)) continue;
-          try {
-            const res = await fetch(`${baseUrl}entries/${id}.json?v=${Date.now()}`);
-            if (res.ok) {
-              const data = await res.json();
-              allEntries.push(data);
+    if (ENABLE_STATIC_ENTRY_FALLBACK) {
+      try {
+        const indexResponse = await fetch(`${baseUrl}index.json?v=${Date.now()}`);
+        if (indexResponse.ok) {
+          const indexData = await indexResponse.json();
+          for (const id of indexData.entries) {
+            if (allEntries.some((e) => e.date === id)) continue;
+            try {
+              const res = await fetch(`${baseUrl}entries/${id}.json?v=${Date.now()}`);
+              if (res.ok) {
+                const data = await res.json();
+                allEntries.push(data);
+              }
+            } catch (e) {
+              console.warn(e);
             }
-          } catch (e) {
-            console.warn(e);
           }
         }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
     }
 
     allEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -880,7 +898,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
           if (!scene.image) return { text: scene.text, image: null };
           const resizedBlob = await resizeImage(scene.image);
           const paddedIndex = String(i + 1).padStart(2, '0');
-          const storageRef = ref(storage, `images/${date}-${paddedIndex}.jpg`);
+          const storageRef = ref(storage, `users/${user.uid}/images/${date}-${paddedIndex}.jpg`);
           await uploadBytes(storageRef, resizedBlob, { contentType: 'image/jpeg' });
           const downloadURL = await getDownloadURL(storageRef);
           return { text: scene.text, image: downloadURL };
@@ -898,7 +916,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
         createdAt: serverTimestamp(),
       };
 
-      await setDoc(doc(db, 'entries', date), entryDoc);
+      await setDoc(doc(db, 'users', user.uid, 'entries', date), entryDoc);
       showToast('Entry published to archive.');
       onCompleteOnboarding();
     } catch (err) {
@@ -1121,15 +1139,14 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
   );
 };
 
-/* --- AUTH VIEW --- */
-const AuthView = ({ onSuccess }) => {
+/* --- AUTH GATE --- */
+const AuthGate = () => {
   const [authError, setAuthError] = useState('');
 
   const handleGoogleSignIn = async () => {
     setAuthError('');
     try {
       await signInWithGoogle();
-      onSuccess();
     } catch (err) {
       console.error(err);
       setAuthError('Sign-in failed. Please try again.');
@@ -1170,11 +1187,195 @@ const AuthView = ({ onSuccess }) => {
   );
 };
 
+const AuthLoadingScreen = () => (
+  <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-5 px-6">
+    <div className="relative">
+      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 blur-sm opacity-70"></div>
+      <div className="absolute inset-0 rounded-full border border-white/20"></div>
+      <div className="absolute inset-3 rounded-full border-2 border-purple-300/60 border-t-transparent animate-spin"></div>
+    </div>
+    <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500 font-mono">MORPHEUS</p>
+  </div>
+);
+
+const ProfileModal = ({ user, isOpen, onClose }) => {
+  const dialogRef = useRef(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setConfirmingDelete(false);
+      setError('');
+      return undefined;
+    }
+
+    const previousActive = document.activeElement;
+    const dialog = dialogRef.current;
+    const focusable = dialog?.querySelector(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    focusable?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !dialog) return;
+      const items = Array.from(
+        dialog.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((item) => !item.disabled);
+      if (items.length === 0) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousActive?.focus?.();
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !user) return null;
+
+  const handleSignOut = async () => {
+    onClose();
+    await signOutUser();
+  };
+
+  const handleDeleteAllData = async () => {
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
+
+    setIsDeleting(true);
+    setError('');
+    try {
+      if (!functions) throw new Error('Firebase functions are not configured.');
+      await httpsCallable(functions, 'deleteUserData')();
+      onClose();
+      await signOutUser();
+    } catch (err) {
+      console.error('Delete user data failed:', err);
+      setError('Could not delete your data. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-[#05070d]/80 backdrop-blur-sm px-4"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-title"
+        className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0a0f1c]/95 shadow-2xl shadow-purple-950/30 overflow-hidden"
+      >
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+          <h2
+            id="profile-title"
+            className="text-sm font-mono uppercase tracking-[0.2em] text-white"
+          >
+            Profile
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 w-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            aria-label="Close profile"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center text-sm font-semibold tracking-widest text-cyan-100">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span>{getUserInitials(user)}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-medium truncate">
+                {user.displayName || 'Morpheus user'}
+              </p>
+              <p className="text-sm text-slate-400 truncate">{user.email}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full min-h-[44px] rounded-full border border-white/10 px-5 py-3 flex items-center justify-center gap-2 text-sm text-slate-200 hover:border-cyan-300/40 hover:text-white transition-colors"
+          >
+            <LogOut size={15} />
+            Sign out
+          </button>
+
+          <div className="rounded-xl border border-red-400/20 bg-red-500/5 p-4 space-y-3">
+            <div>
+              <p className="text-xs font-mono uppercase tracking-[0.18em] text-red-300">
+                Danger zone
+              </p>
+              <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+                Delete every archive entry and stored image owned by this account.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDeleteAllData}
+              disabled={isDeleting}
+              className="w-full min-h-[44px] rounded-full border border-red-400/30 px-5 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDeleting
+                ? 'Deleting...'
+                : confirmingDelete
+                  ? 'Confirm delete all my data'
+                  : 'Delete all my data'}
+            </button>
+            {confirmingDelete && !isDeleting && (
+              <p className="text-xs text-red-200/80 leading-relaxed">
+                This cannot be undone. Press confirm to permanently delete your private archive.
+              </p>
+            )}
+            {error && <p className="text-xs text-red-300">{error}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* --- MAIN APP --- */
 function App() {
   const [currentView, setCurrentView] = useState('gallery');
   const [onboardingState, setOnboardingState] = useState({ completed: false, dismissed: false });
-  const { user } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     try {
@@ -1206,17 +1407,38 @@ function App() {
     persistOnboarding({ ...onboardingState, dismissed: true });
   };
 
-  // If the user tries to add an entry without being signed in (and Firebase is configured),
-  // show the auth screen instead.
-  const effectiveView = currentView === 'add' && isConfigured && !user ? 'auth' : currentView;
+  const closeProfile = () => setIsProfileOpen(false);
+
+  if (isConfigured && loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
+        <Background />
+        <AuthLoadingScreen />
+      </div>
+    );
+  }
+
+  if (isConfigured && !user) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
+        <Background />
+        <AuthGate />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
       <Background />
-      <Header currentView={currentView} setCurrentView={setCurrentView} user={user} />
+      <Header
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        user={user}
+        onOpenProfile={() => setIsProfileOpen(true)}
+      />
 
       <main>
-        {effectiveView === 'gallery' && (
+        {currentView === 'gallery' && (
           <GalleryView
             user={user}
             setCurrentView={setCurrentView}
@@ -1225,16 +1447,17 @@ function App() {
             onSkipOnboarding={skipOnboarding}
           />
         )}
-        {effectiveView === 'add' && (
+        {currentView === 'add' && (
           <AddEntryForm
             user={user}
             onboardingState={onboardingState}
             onCompleteOnboarding={completeOnboarding}
           />
         )}
-        {effectiveView === 'auth' && <AuthView onSuccess={() => setCurrentView('add')} />}
-        {SHOW_DEMO && effectiveView === 'demo' && <GlassSurfaceDemo />}
+        {SHOW_DEMO && currentView === 'demo' && <GlassSurfaceDemo />}
       </main>
+
+      <ProfileModal user={user} isOpen={isProfileOpen} onClose={closeProfile} />
     </div>
   );
 }

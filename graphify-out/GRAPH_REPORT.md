@@ -1,12 +1,12 @@
 # Graph Report - morpheus-dream-archive  (2026-04-29)
 
 ## Corpus Check
-- 16 files · ~576,517 words
+- 18 files · ~579,951 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2054 nodes · 6182 edges · 22 communities detected
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 179 edges (avg confidence: 0.8)
+- 2103 nodes · 6271 edges · 19 communities detected
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 141 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -29,148 +29,129 @@
 - [[_COMMUNITY_Community 16|Community 16]]
 - [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Community 18|Community 18]]
-- [[_COMMUNITY_Community 19|Community 19]]
-- [[_COMMUNITY_Community 20|Community 20]]
-- [[_COMMUNITY_Community 21|Community 21]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `ub` - 47 edges
-2. `wI()` - 45 edges
-3. `ve()` - 44 edges
-4. `Ce()` - 40 edges
-5. `GE()` - 40 edges
-6. `E()` - 37 edges
-7. `JE()` - 34 edges
-8. `oc()` - 32 edges
-9. `hT()` - 31 edges
-10. `dT()` - 31 edges
+1. `aC()` - 50 edges
+2. `jI()` - 48 edges
+3. `e()` - 43 edges
+4. `He()` - 42 edges
+5. `uI()` - 34 edges
+6. `Fc()` - 34 edges
+7. `Qe` - 32 edges
+8. `tn` - 30 edges
+9. `Ua()` - 29 edges
+10. `xA()` - 29 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `T()` --calls--> `b()`  [INFERRED]
-  docs/workbox-3bcf8611.js → docs/assets/workbox-window.prod.es5-vqzQaGvo.js
-- `e()` --calls--> `stringify()`  [INFERRED]
-  docs/workbox-3bcf8611.js → docs/assets/index-Di8ct8wv.js
-- `Hi()` --calls--> `h()`  [INFERRED]
-  docs/assets/index-Di8ct8wv.js → docs/workbox-3bcf8611.js
-- `O()` --calls--> `h()`  [INFERRED]
-  docs/assets/index-Di8ct8wv.js → docs/workbox-3bcf8611.js
-- `h_()` --calls--> `h()`  [INFERRED]
-  docs/assets/index-Di8ct8wv.js → docs/workbox-3bcf8611.js
+- `parse()` --calls--> `readJson()`  [INFERRED]
+  docs/assets/index-DJW7RopM.js → scripts/migrate-to-firebase.mjs
+- `h()` --calls--> `cS()`  [INFERRED]
+  docs/workbox-3bcf8611.js → docs/assets/index-DJW7RopM.js
+- `h()` --calls--> `O()`  [INFERRED]
+  docs/workbox-3bcf8611.js → docs/assets/index-DJW7RopM.js
+- `h()` --calls--> `_h()`  [INFERRED]
+  docs/workbox-3bcf8611.js → docs/assets/index-DJW7RopM.js
+- `h()` --calls--> `A1()`  [INFERRED]
+  docs/workbox-3bcf8611.js → docs/assets/index-DJW7RopM.js
 
 ## Communities
 
 ### Community 0 - "Community 0"
 Cohesion: 0.02
-Nodes (208): __(), $1(), ag(), ah(), Am(), ao(), As(), aT() (+200 more)
+Nodes (214): __(), a0(), A1(), af(), ag(), aI(), ak(), Ax() (+206 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.02
-Nodes (66): signOutUser(), A1(), Ab(), aI(), an(), Ap(), Ay(), Bk() (+58 more)
+Nodes (55): signOutUser(), aC(), am(), ap, Bd(), Cp(), cy, dC (+47 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.02
-Nodes (38): ba(), c2(), Ca(), cd(), Cg(), Da(), df(), Do() (+30 more)
+Cohesion: 0.03
+Nodes (67): b0(), b2(), by(), ca, ck(), d0(), d2(), ei() (+59 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.02
-Nodes (92): _0(), a(), bc(), Bp(), bx(), d0(), Dd(), dx() (+84 more)
+Nodes (32): A(), bf, dw(), e2, ea(), F_(), fw(), gA() (+24 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.02
-Nodes (48): A0(), a2, Af(), aw(), b2(), Bn, BS(), color() (+40 more)
+Nodes (65): _2(), a2(), aa(), Ae(), bw(), c2(), color(), cw() (+57 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.02
-Nodes (23): ac(), fw(), Gk, gy(), ix, jf(), jx(), Kc() (+15 more)
+Nodes (37): An, aw(), Ba(), bl(), bx(), cr(), Do(), DT() (+29 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.03
-Nodes (19): ax, B0(), check(), id(), inorderTraversal(), isRed(), maxKey(), minKey() (+11 more)
+Cohesion: 0.02
+Nodes (24): al, check(), Cl(), cT(), Da(), DS(), ey(), fT() (+16 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.03
-Nodes (27): Ae(), aR(), c0(), e_(), f0(), Fu(), Gd(), gw() (+19 more)
+Nodes (41): Ce(), D_(), dx, fe(), fx, Fy(), _h(), ha (+33 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.03
-Nodes (22): _2(), aa, Ad(), Al(), bg(), BT(), bw, cw() (+14 more)
+Nodes (20): ah(), Cd(), dy, e(), Hy(), i1(), inorderTraversal(), l_() (+12 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.04
-Nodes (20): be(), k1(), ly(), Tp(), Ue(), a, c(), d() (+12 more)
+Cohesion: 0.03
+Nodes (19): eb(), ed(), fb(), fd(), i(), Ia(), j_(), lT() (+11 more)
 
 ### Community 10 - "Community 10"
-Cohesion: 0.04
-Nodes (18): bb(), bf, db(), de(), Ec(), gx(), JE(), L_() (+10 more)
+Cohesion: 0.03
+Nodes (44): deleteEntries(), _0(), As(), aT(), bg(), cI(), cS(), Dn (+36 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.05
-Nodes (12): ds(), ex(), fd(), iw(), K0(), kx, p_(), pS() (+4 more)
+Cohesion: 0.04
+Nodes (28): Ad(), bb(), bR(), cb, cn, db(), dd(), Dp() (+20 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.05
-Nodes (28): by(), Ce(), cy(), Fc(), fe(), GT(), He(), Hp() (+20 more)
+Cohesion: 0.04
+Nodes (15): App(), getUserInitials(), Header(), ProfileModal(), gd(), Gp(), H1(), ip (+7 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.04
-Nodes (11): g2(), gg(), ir(), kg(), Kr(), pE(), Qn(), Sl() (+3 more)
+Cohesion: 0.05
+Nodes (11): av(), be(), dI(), eS(), ie(), le(), m1(), parse() (+3 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.06
-Nodes (20): cu(), Eg(), ey, fa(), Fk(), hc(), l2(), Mu() (+12 more)
+Cohesion: 0.05
+Nodes (11): ar(), Ex(), fn(), gn(), io(), Lx(), ox(), rr() (+3 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.09
-Nodes (5): Kk, Pp(), Sp(), Ty(), Xk
+Cohesion: 0.05
+Nodes (11): _1(), BS(), cx, hx, ky, px, Sh(), UC() (+3 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.11
-Nodes (4): b_(), bI(), KE(), vf
+Cohesion: 0.06
+Nodes (10): dg(), iy(), Jh(), l0(), pg(), Rl(), ry, sT() (+2 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.13
-Nodes (3): Hg(), pf(), wE
+Cohesion: 1.0
+Nodes (2): a(), i()
 
 ### Community 18 - "Community 18"
-Cohesion: 0.13
-Nodes (2): App(), useAuth()
-
-### Community 19 - "Community 19"
-Cohesion: 0.53
-Nodes (1): lb
-
-### Community 20 - "Community 20"
-Cohesion: 1.0
-Nodes (2): a(), n()
-
-### Community 21 - "Community 21"
 Cohesion: 1.0
 Nodes (2): GlassSurface(), useDarkMode()
 
 ## Knowledge Gaps
-- **Thin community `Community 18`** (15 nodes): `AddEntryForm()`, `App()`, `AuthView()`, `Background()`, `FragmentCard()`, `GalleryView()`, `Header()`, `RawTranscriptViewer()`, `resolveImageUrl()`, `SmartImage()`, `Toast()`, `truncateText()`, `App.jsx`, `useAuth.js`, `useAuth()`
+- **Thin community `Community 17`** (3 nodes): `sw.js`, `a()`, `i()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 19`** (6 nodes): `lb`, `.constructor()`, `.updatePasswordCharacterOptionsStatuses()`, `.validatePassword()`, `.validatePasswordCharacterOptions()`, `.validatePasswordLengthOptions()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 20`** (3 nodes): `sw.js`, `a()`, `n()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 21`** (3 nodes): `GlassSurface()`, `useDarkMode()`, `GlassSurface.jsx`
+- **Thin community `Community 18`** (3 nodes): `GlassSurface()`, `useDarkMode()`, `GlassSurface.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `S_()` connect `Community 1` to `Community 0`, `Community 9`, `Community 11`, `Community 13`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
-- **Why does `Me` connect `Community 4` to `Community 0`, `Community 10`, `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `oT()` connect `Community 4` to `Community 0`, `Community 1`?**
-  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+- **Why does `aC()` connect `Community 1` to `Community 0`, `Community 2`, `Community 12`, `Community 13`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Why does `un` connect `Community 5` to `Community 0`, `Community 2`, `Community 3`, `Community 4`, `Community 8`, `Community 9`, `Community 14`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+- **Why does `pr()` connect `Community 5` to `Community 0`, `Community 2`, `Community 3`, `Community 8`, `Community 10`, `Community 15`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.02 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._

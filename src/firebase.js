@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,6 +20,7 @@ export const app = isConfigured ? initializeApp(firebaseConfig) : null;
 export const db = isConfigured ? getFirestore(app) : null;
 export const storage = isConfigured ? getStorage(app) : null;
 export const auth = isConfigured ? getAuth(app) : null;
+export const functions = isConfigured ? getFunctions(app) : null;
 
 const googleProvider = isConfigured ? new GoogleAuthProvider() : null;
 
