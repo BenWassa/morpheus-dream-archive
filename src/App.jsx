@@ -41,6 +41,8 @@ const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO === 'true' || false;
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
 
+const ONBOARDING_STORAGE_KEY = 'morpheus-onboarding-v1';
+
 /* --- UTILITIES --- */
 const truncateText = (text, maxLength) => {
   if (!text || text.length <= maxLength) return text;
@@ -53,6 +55,87 @@ const truncateText = (text, maxLength) => {
 const Background = () => (
   <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none dream-bg"></div>
 );
+
+// HintBubble — context-sensitive dismissable tooltip
+const HintBubble = ({ storageKey, children, className = '' }) => {
+  const [visible, setVisible] = useState(() => !localStorage.getItem(storageKey));
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className={`rounded-xl border border-cyan-400/30 bg-cyan-400/5 p-3 sm:p-4 flex items-start justify-between gap-3 ${className}`}
+    >
+      <p className="text-sm text-slate-300 leading-relaxed flex-1">{children}</p>
+      <button
+        onClick={() => {
+          localStorage.setItem(storageKey, '1');
+          setVisible(false);
+        }}
+        className="text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
+        aria-label="Dismiss hint"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+};
+
+// OnboardingTimeline — progress indicator for first entry
+const OnboardingTimeline = ({ hasParsed, hasImages, isPublished, onDismiss }) => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Auto-collapse when all steps complete
+  useEffect(() => {
+    if (isPublished && !collapsed) {
+      setCollapsed(true);
+    }
+  }, [isPublished, collapsed]);
+
+  const steps = [
+    { label: 'Parse JSON', done: hasParsed },
+    { label: 'Attach Images', done: hasImages },
+    { label: 'Publish Entry', done: isPublished },
+  ];
+
+  if (collapsed) return null;
+
+  return (
+    <div className="mb-8 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-4 sm:p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] uppercase tracking-[0.2em] text-purple-300 font-mono">
+          First Entry Progress
+        </p>
+        <button
+          onClick={onDismiss}
+          className="text-slate-500 hover:text-slate-300 transition-colors p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
+          aria-label="Dismiss timeline"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {steps.map((step, idx) => (
+          <div key={idx} className="flex items-center gap-3">
+            <div
+              className={`w-2 h-2 rounded-full transition-all ${
+                step.done ? 'bg-cyan-400 scale-125' : 'bg-slate-700 scale-100'
+              }`}
+            ></div>
+            <span
+              className={`text-xs font-mono tracking-widest uppercase ${
+                step.done ? 'text-cyan-300' : 'text-slate-500'
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // Image Component with Fallback
 const SmartImage = ({ src, alt, className, width, height, loading = 'lazy', fetchPriority }) => (
@@ -233,7 +316,13 @@ const resolveImageUrl = (imagePath, baseUrl) => {
 };
 
 /* --- GALLERY VIEW --- */
-const GalleryView = ({ user }) => {
+const GalleryView = ({
+  user,
+  setCurrentView,
+  onboardingState,
+  onCompleteOnboarding,
+  onSkipOnboarding,
+}) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -242,6 +331,12 @@ const GalleryView = ({ user }) => {
   useEffect(() => {
     loadEntries();
   }, [user]); // re-fetch when auth state changes
+
+  useEffect(() => {
+    if (!loading && entries.length > 0 && !onboardingState.completed) {
+      onCompleteOnboarding();
+    }
+  }, [entries.length, loading, onboardingState.completed, onCompleteOnboarding]);
 
   const loadEntries = async () => {
     setLoading(true);
@@ -302,6 +397,101 @@ const GalleryView = ({ user }) => {
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      ) : entries.length === 0 ? (
+        <div className="max-w-3xl relative">
+          {/* Atmospheric background glows */}
+          <div className="absolute -inset-12 opacity-30 pointer-events-none">
+            <div className="absolute top-1/4 left-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl"></div>
+          </div>
+
+          <GlassSurfaceReactBits
+            width="100%"
+            height="auto"
+            borderRadius={24}
+            backgroundOpacity={0.06}
+            blur={12}
+            className="relative p-6 sm:p-10 border border-white/10"
+          >
+            <div className="space-y-8">
+              {/* Cinematic header */}
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-300/80 font-mono">
+                  Getting Started
+                </p>
+                <h2 className="text-3xl sm:text-5xl font-display text-white leading-tight">
+                  Preserve the
+                  <span className="text-cyan-300"> ephemeral</span>
+                </h2>
+                <p className="text-slate-300/90 max-w-[60ch] leading-relaxed text-base">
+                  Your dreams are glimpses into the subconscious. Archive them with scenes,
+                  fragments, and introspective detail. Each entry becomes searchable and
+                  revisitable.
+                </p>
+              </div>
+
+              {/* Steps */}
+              <div className="space-y-4 pt-4 border-t border-white/10">
+                <div className="flex items-start gap-4">
+                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
+                    01
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-slate-200 text-sm font-semibold mb-1">
+                      Generate Structured Data
+                    </p>
+                    <p className="text-slate-400 text-xs leading-relaxed">
+                      Use an AI assistant and our system prompt to transform your raw transcription
+                      into JSON. Copy the prompt from the form.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
+                    02
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-slate-200 text-sm font-semibold mb-1">Parse and Visualize</p>
+                    <p className="text-slate-400 text-xs leading-relaxed">
+                      Paste the JSON, parse it, and attach scene images. Each scene can have one
+                      visualization (optional).
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
+                    03
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-slate-200 text-sm font-semibold mb-1">Publish and Index</p>
+                    <p className="text-slate-400 text-xs leading-relaxed">
+                      Publish to the archive, or export a local bundle. Your dream becomes
+                      searchable by date, keywords, and scenes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 pt-4 border-t border-white/10">
+                <button
+                  onClick={() => setCurrentView('add')}
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 min-h-[44px] text-sm font-semibold tracking-wide text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all"
+                >
+                  Start First Entry <ArrowRight size={14} />
+                </button>
+                {!onboardingState.dismissed && (
+                  <button
+                    onClick={onSkipOnboarding}
+                    className="inline-flex items-center justify-center rounded-full px-5 py-3 min-h-[44px] text-xs uppercase tracking-widest text-slate-400 hover:text-slate-200 border border-white/10 hover:border-white/20 transition-colors"
+                  >
+                    Skip onboarding
+                  </button>
+                )}
+              </div>
+            </div>
+          </GlassSurfaceReactBits>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -490,7 +680,7 @@ const GalleryView = ({ user }) => {
 };
 
 /* --- ADD ENTRY FORM (UI Update) --- */
-const AddEntryForm = ({ user }) => {
+const AddEntryForm = ({ user, onboardingState, onCompleteOnboarding }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [jsonText, setJsonText] = useState('');
   const [isParsed, setIsParsed] = useState(false);
@@ -678,6 +868,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, `dream-${date}.zip`);
+    onCompleteOnboarding();
   };
 
   const uploadToFirebase = async () => {
@@ -709,6 +900,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
       await setDoc(doc(db, 'entries', date), entryDoc);
       showToast('Entry published to archive.');
+      onCompleteOnboarding();
     } catch (err) {
       console.error('Upload failed:', err);
       showToast('Upload failed — use Export Bundle as a backup.');
@@ -717,6 +909,15 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
     }
   };
 
+  const [hasImagesAttached, setHasImagesAttached] = useState(false);
+  const [hideTimeline, setHideTimeline] = useState(false);
+
+  // Track if any image is attached
+  useEffect(() => {
+    const anyImages = scenes.some((s) => s.preview);
+    setHasImagesAttached(anyImages);
+  }, [scenes]);
+
   return (
     <div className="relative z-10 pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-4xl mx-auto min-h-screen pl-safe pr-safe">
       <div className="flex items-center gap-4 mb-8 sm:mb-12">
@@ -724,8 +925,22 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
         <h2 className="text-3xl sm:text-4xl font-display text-white">Record Entry</h2>
       </div>
 
+      {!hideTimeline && !onboardingState.completed && (
+        <OnboardingTimeline
+          hasParsed={isParsed}
+          hasImages={hasImagesAttached}
+          isPublished={false}
+          onDismiss={() => setHideTimeline(true)}
+        />
+      )}
+
       {!isParsed ? (
         <div className="space-y-6 animate-fade-in">
+          <HintBubble storageKey="morpheus-hint-json-v1" className="mb-4">
+            Use the <strong>Copy System Prompt</strong> button to get a structured prompt for your
+            AI assistant. Paste the AI's JSON output here.
+          </HintBubble>
+
           <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-4 sm:p-8 shadow-xl relative overflow-hidden">
             {/* Subtle background for glassmorphism */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -814,9 +1029,15 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
               </div>
 
               <div className="space-y-6">
-                <label className="block text-slate-500 text-[10px] uppercase tracking-widest">
-                  Scene Visualizations
-                </label>
+                <div className="space-y-3">
+                  <label className="block text-slate-500 text-[10px] uppercase tracking-widest">
+                    Scene Visualizations
+                  </label>
+                  <HintBubble storageKey="morpheus-hint-images-v1">
+                    Images are optional. Each scene can have one visualization attached. This could
+                    be a screenshot, AI-generated image, or personal photo.
+                  </HintBubble>
+                </div>
                 {scenes.map((scene, idx) => (
                   <div
                     key={idx}
@@ -922,10 +1143,11 @@ const AuthView = ({ onSuccess }) => {
           <Moon size={28} className="text-purple-400" />
         </div>
         <h2 className="text-3xl sm:text-4xl font-display text-white tracking-tight">
-          Access Required
+          Sign in to continue
         </h2>
-        <p className="text-slate-400 font-mono text-xs tracking-widest uppercase max-w-xs">
-          Sign in to publish entries to the archive
+        <p className="text-slate-300/90 max-w-[50ch] text-sm leading-relaxed">
+          Publish your dreams directly to the archive. Google authentication keeps your archive
+          private and accessible across devices.
         </p>
       </div>
       <GlassSurfaceReactBits
@@ -951,7 +1173,38 @@ const AuthView = ({ onSuccess }) => {
 /* --- MAIN APP --- */
 function App() {
   const [currentView, setCurrentView] = useState('gallery');
+  const [onboardingState, setOnboardingState] = useState({ completed: false, dismissed: false });
   const { user } = useAuth();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setOnboardingState({
+          completed: Boolean(parsed.completed),
+          dismissed: Boolean(parsed.dismissed),
+        });
+      }
+    } catch (error) {
+      console.warn('Unable to restore onboarding state', error);
+    }
+  }, []);
+
+  const persistOnboarding = (nextState) => {
+    setOnboardingState(nextState);
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(nextState));
+  };
+
+  const completeOnboarding = () => {
+    if (onboardingState.completed) return;
+    persistOnboarding({ completed: true, dismissed: true });
+  };
+
+  const skipOnboarding = () => {
+    if (onboardingState.dismissed) return;
+    persistOnboarding({ ...onboardingState, dismissed: true });
+  };
 
   // If the user tries to add an entry without being signed in (and Firebase is configured),
   // show the auth screen instead.
@@ -963,8 +1216,22 @@ function App() {
       <Header currentView={currentView} setCurrentView={setCurrentView} user={user} />
 
       <main>
-        {effectiveView === 'gallery' && <GalleryView user={user} />}
-        {effectiveView === 'add' && <AddEntryForm user={user} />}
+        {effectiveView === 'gallery' && (
+          <GalleryView
+            user={user}
+            setCurrentView={setCurrentView}
+            onboardingState={onboardingState}
+            onCompleteOnboarding={completeOnboarding}
+            onSkipOnboarding={skipOnboarding}
+          />
+        )}
+        {effectiveView === 'add' && (
+          <AddEntryForm
+            user={user}
+            onboardingState={onboardingState}
+            onCompleteOnboarding={completeOnboarding}
+          />
+        )}
         {effectiveView === 'auth' && <AuthView onSuccess={() => setCurrentView('add')} />}
         {SHOW_DEMO && effectiveView === 'demo' && <GlassSurfaceDemo />}
       </main>
