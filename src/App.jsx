@@ -68,7 +68,7 @@ const Background = () => (
   <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none dream-bg"></div>
 );
 
-// HintBubble — context-sensitive dismissable tooltip
+// HintBubble: context-sensitive dismissable tooltip
 const HintBubble = ({ storageKey, children, className = '' }) => {
   const [visible, setVisible] = useState(() => !localStorage.getItem(storageKey));
 
@@ -76,15 +76,19 @@ const HintBubble = ({ storageKey, children, className = '' }) => {
 
   return (
     <div
-      className={`rounded-xl border border-cyan-400/30 bg-cyan-400/5 p-3 sm:p-4 flex items-start justify-between gap-3 ${className}`}
+      className={`rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4 sm:p-5 flex items-start justify-between gap-4 shadow-[0_18px_60px_rgba(8,145,178,0.08)] ${className}`}
+      role="note"
     >
+      <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
+        <Sparkles size={13} />
+      </div>
       <p className="text-sm text-slate-300 leading-relaxed flex-1">{children}</p>
       <button
         onClick={() => {
           localStorage.setItem(storageKey, '1');
           setVisible(false);
         }}
-        className="text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
+        className="text-slate-500 hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/70 transition-colors flex-shrink-0 p-1 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-full"
         aria-label="Dismiss hint"
       >
         <X size={14} />
@@ -93,7 +97,7 @@ const HintBubble = ({ storageKey, children, className = '' }) => {
   );
 };
 
-// OnboardingTimeline — progress indicator for first entry
+// OnboardingTimeline: progress indicator for first entry
 const OnboardingTimeline = ({ hasParsed, hasImages, isPublished, onDismiss }) => {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -105,43 +109,71 @@ const OnboardingTimeline = ({ hasParsed, hasImages, isPublished, onDismiss }) =>
   }, [isPublished, collapsed]);
 
   const steps = [
-    { label: 'Parse JSON', done: hasParsed },
-    { label: 'Attach Images', done: hasImages },
-    { label: 'Publish Entry', done: isPublished },
+    {
+      label: 'Parse JSON',
+      detail: 'Turn the assistant output into archive fields.',
+      done: hasParsed,
+    },
+    {
+      label: 'Attach images',
+      detail: 'Add one visual per scene when it helps recall.',
+      done: hasImages,
+    },
+    {
+      label: 'Publish entry',
+      detail: 'Store it privately, or export a local bundle.',
+      done: isPublished,
+    },
   ];
+  const activeIndex = steps.findIndex((step) => !step.done);
 
   if (collapsed) return null;
 
   return (
-    <div className="mb-8 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-4 sm:p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-purple-300 font-mono">
-          First Entry Progress
-        </p>
+    <div className="mb-8 rounded-[1.25rem] border border-purple-300/20 bg-purple-300/[0.055] p-4 sm:p-5 shadow-[0_24px_80px_rgba(88,28,135,0.12)]">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-purple-200 font-mono">
+            First Entry
+          </p>
+          <p className="mt-1 text-sm text-slate-400">A short path from raw memory to archive.</p>
+        </div>
         <button
           onClick={onDismiss}
-          className="text-slate-500 hover:text-slate-300 transition-colors p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
+          className="text-slate-500 hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300/70 transition-colors p-1 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-full"
           aria-label="Dismiss timeline"
         >
           <X size={14} />
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {steps.map((step, idx) => (
-          <div key={idx} className="flex items-center gap-3">
+          <div
+            key={step.label}
+            className={`rounded-2xl border p-4 transition-colors ${
+              step.done
+                ? 'border-cyan-300/25 bg-cyan-300/[0.055]'
+                : idx === activeIndex
+                  ? 'border-purple-300/30 bg-purple-300/[0.07]'
+                  : 'border-white/10 bg-white/[0.025]'
+            }`}
+          >
             <div
-              className={`w-2 h-2 rounded-full transition-all ${
-                step.done ? 'bg-cyan-400 scale-125' : 'bg-slate-700 scale-100'
-              }`}
-            ></div>
-            <span
-              className={`text-xs font-mono tracking-widest uppercase ${
-                step.done ? 'text-cyan-300' : 'text-slate-500'
+              className={`mb-3 flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-mono ${
+                step.done
+                  ? 'border-cyan-300/40 bg-cyan-300/10 text-cyan-200'
+                  : idx === activeIndex
+                    ? 'border-purple-300/40 bg-purple-300/10 text-purple-100'
+                    : 'border-white/10 bg-white/5 text-slate-500'
               }`}
             >
+              {step.done ? <CheckCircle size={13} /> : String(idx + 1).padStart(2, '0')}
+            </div>
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-slate-200">
               {step.label}
-            </span>
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">{step.detail}</p>
           </div>
         ))}
       </div>
@@ -159,7 +191,7 @@ const SmartImage = ({ src, alt, className, width, height, loading = 'lazy', fetc
     height={height}
     loading={loading}
     decoding="async"
-    fetchpriority={fetchPriority}
+    fetchPriority={fetchPriority}
     onError={(e) => {
       e.currentTarget.src = FALLBACK_IMAGE;
     }}
@@ -417,7 +449,7 @@ const GalleryView = ({
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         </div>
       ) : entries.length === 0 ? (
-        <div className="max-w-3xl relative">
+        <div className="max-w-5xl relative">
           {/* Atmospheric background glows */}
           <div className="absolute -inset-12 opacity-30 pointer-events-none">
             <div className="absolute top-1/4 left-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl"></div>
@@ -432,81 +464,79 @@ const GalleryView = ({
             blur={12}
             className="relative p-6 sm:p-10 border border-white/10"
           >
-            <div className="space-y-8">
-              {/* Cinematic header */}
-              <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-300/80 font-mono">
-                  Getting Started
-                </p>
-                <h2 className="text-3xl sm:text-5xl font-display text-white leading-tight">
-                  Preserve the
-                  <span className="text-cyan-300"> ephemeral</span>
-                </h2>
-                <p className="text-slate-300/90 max-w-[60ch] leading-relaxed text-base">
-                  Your dreams are glimpses into the subconscious. Archive them with scenes,
-                  fragments, and introspective detail. Each entry becomes searchable and
-                  revisitable.
-                </p>
-              </div>
+            <div className="grid gap-8 lg:grid-cols-[1fr_18rem] lg:items-start">
+              <div className="space-y-7">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-3 py-1.5">
+                    <Sparkles size={13} className="text-cyan-200" />
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-cyan-200 font-mono">
+                      Empty Archive
+                    </span>
+                  </div>
+                  <h2 className="text-3xl sm:text-5xl font-display text-white leading-tight max-w-[12ch]">
+                    Preserve the ephemeral
+                  </h2>
+                  <p className="text-slate-300/90 max-w-[62ch] leading-relaxed text-base">
+                    Begin with a raw transcription. Morpheus turns it into dated scenes, fragments,
+                    keywords, and optional imagery, so recall stays vivid without becoming a feed.
+                  </p>
+                </div>
 
-              {/* Steps */}
-              <div className="space-y-4 pt-4 border-t border-white/10">
-                <div className="flex items-start gap-4">
-                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
-                    01
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-slate-200 text-sm font-semibold mb-1">
-                      Generate Structured Data
-                    </p>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                      Use an AI assistant and our system prompt to transform your raw transcription
-                      into JSON. Copy the prompt from the form.
-                    </p>
-                  </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    ['01', 'Copy prompt', 'Use the archive prompt with your AI assistant.'],
+                    ['02', 'Paste JSON', 'Parse structured output into the review screen.'],
+                    ['03', 'Publish', 'Store privately, or export a local bundle.'],
+                  ].map(([number, title, body]) => (
+                    <div
+                      key={number}
+                      className="rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+                    >
+                      <p className="text-cyan-300 font-mono text-xs font-bold">{number}</p>
+                      <p className="mt-3 text-slate-100 text-sm font-semibold">{title}</p>
+                      <p className="mt-2 text-slate-500 text-xs leading-relaxed">{body}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
-                    02
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-slate-200 text-sm font-semibold mb-1">Parse and Visualize</p>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                      Paste the JSON, parse it, and attach scene images. Each scene can have one
-                      visualization (optional).
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-cyan-400 font-mono text-sm font-bold leading-none pt-1">
-                    03
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-slate-200 text-sm font-semibold mb-1">Publish and Index</p>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                      Publish to the archive, or export a local bundle. Your dream becomes
-                      searchable by date, keywords, and scenes.
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 pt-4 border-t border-white/10">
-                <button
-                  onClick={() => setCurrentView('add')}
-                  className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 min-h-[44px] text-sm font-semibold tracking-wide text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all"
-                >
-                  Start First Entry <ArrowRight size={14} />
-                </button>
-                {!onboardingState.dismissed && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 pt-2">
                   <button
-                    onClick={onSkipOnboarding}
-                    className="inline-flex items-center justify-center rounded-full px-5 py-3 min-h-[44px] text-xs uppercase tracking-widest text-slate-400 hover:text-slate-200 border border-white/10 hover:border-white/20 transition-colors"
+                    onClick={() => setCurrentView('add')}
+                    className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 min-h-[44px] text-sm font-semibold tracking-wide text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300/70 active:scale-[0.99] transition-all"
                   >
-                    Skip onboarding
+                    Start first entry <ArrowRight size={14} />
                   </button>
-                )}
+                  {!onboardingState.dismissed && (
+                    <button
+                      onClick={onSkipOnboarding}
+                      className="inline-flex items-center justify-center rounded-full px-5 py-3 min-h-[44px] text-xs uppercase tracking-widest text-slate-400 hover:text-slate-200 border border-white/10 hover:border-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300/60 transition-colors"
+                    >
+                      Dismiss guide
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#090e1a]/55 p-5">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-purple-200 font-mono">
+                  First capture
+                </p>
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <p className="text-sm text-slate-200">What you need</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      A transcription, an AI assistant, and any scene images you want to keep.
+                    </p>
+                  </div>
+                  <div className="h-px bg-white/10"></div>
+                  <div>
+                    <p className="text-sm text-slate-200">What stays optional</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Images and fragments can be skipped. The dated entry is enough to start the
+                      archive.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </GlassSurfaceReactBits>
@@ -722,7 +752,7 @@ const AddEntryForm = ({ user, onboardingState, onCompleteOnboarding }) => {
   const parseJson = () => {
     try {
       // IMPORTANT: preserve the full AI output when parsing.
-      // Do NOT perform any truncation or shortening here —
+      // Do NOT perform any truncation or shortening here.
       // truncation belongs solely to the UI layer when rendering.
       const parsed = JSON.parse(jsonText);
 
@@ -730,7 +760,7 @@ const AddEntryForm = ({ user, onboardingState, onCompleteOnboarding }) => {
       if (import.meta.env.DEV) {
         if (typeof parsed.summary === 'string' && parsed.summary.endsWith('...')) {
           console.warn(
-            'parseJson: parsed.summary appears truncated — ensure the AI returns full text'
+            'parseJson: parsed.summary appears truncated. Ensure the AI returns full text.'
           );
         }
       }
@@ -794,7 +824,7 @@ Important constraints (aim to follow):
 
 - Behavior when content would otherwise be verbose:
   - Avoid producing multi-paragraph strings or long, flowing narratives for any single field. Prefer concise single-sentence or short-paragraph entries.
-  - Prioritize the most relevant details when shortening content so the JSON remains useful for archiving and display — do not attempt programmatic truncation (the app will handle any UI truncation).
+  - Prioritize the most relevant details when shortening content so the JSON remains useful for archiving and display. Do not attempt programmatic truncation (the app will handle any UI truncation).
 
 - Data fidelity & style:
   - Preserve key details and the original voice as much as possible while being concise and following the targets above.
@@ -921,7 +951,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
       onCompleteOnboarding();
     } catch (err) {
       console.error('Upload failed:', err);
-      showToast('Upload failed — use Export Bundle as a backup.');
+      showToast('Upload failed. Use Export Bundle as a backup.');
     } finally {
       setIsUploading(false);
     }
@@ -938,9 +968,21 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 
   return (
     <div className="relative z-10 pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-4xl mx-auto min-h-screen pl-safe pr-safe">
-      <div className="flex items-center gap-4 mb-8 sm:mb-12">
-        <div className="h-10 sm:h-12 w-1 bg-purple-500 rounded-full"></div>
-        <h2 className="text-3xl sm:text-4xl font-display text-white">Record Entry</h2>
+      <div className="mb-8 sm:mb-12 flex items-start gap-4">
+        <div className="relative mt-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-purple-300/25 bg-purple-300/10 text-purple-100">
+          <Moon size={18} />
+          <div className="absolute inset-0 rounded-full bg-purple-400/20 blur-xl"></div>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-200/80 font-mono">
+            {onboardingState.completed ? 'Archive Capture' : 'First Archive Capture'}
+          </p>
+          <h2 className="mt-2 text-3xl sm:text-4xl font-display text-white">Record Entry</h2>
+          <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-slate-400">
+            Bring in structured dream data, review it calmly, then attach only the visuals that
+            strengthen recall.
+          </p>
+        </div>
       </div>
 
       {!hideTimeline && !onboardingState.completed && (
@@ -955,23 +997,33 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
       {!isParsed ? (
         <div className="space-y-6 animate-fade-in">
           <HintBubble storageKey="morpheus-hint-json-v1" className="mb-4">
-            Use the <strong>Copy System Prompt</strong> button to get a structured prompt for your
-            AI assistant. Paste the AI's JSON output here.
+            Copy the archive prompt, run it with your dream transcription, then paste only the JSON
+            response here.
           </HintBubble>
 
-          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-4 sm:p-8 shadow-xl relative overflow-hidden">
+          <div className="bg-[#131b2e]/90 border border-white/5 rounded-[1.25rem] p-4 sm:p-8 shadow-xl relative overflow-hidden">
             {/* Subtle background for glassmorphism */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="relative z-10">
-              <h3 className="text-purple-300 font-mono text-sm tracking-widest mb-6 flex items-center gap-2 uppercase">
-                <Download size={14} /> Step 1: Structure Dream Data
-              </h3>
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-purple-200 font-mono text-sm tracking-widest flex items-center gap-2 uppercase">
+                  <Download size={14} /> Structure dream data
+                </h3>
+                <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">
+                  Step 01
+                </span>
+              </div>
 
               <textarea
                 value={jsonText}
                 onChange={(e) => setJsonText(e.target.value)}
-                placeholder="Paste JSON from AI assistant here..."
-                className="w-full bg-black/30 border border-white/10 rounded-xl p-4 sm:p-6 text-sm font-mono text-slate-300 min-h-[12rem] sm:min-h-[16rem] focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-y custom-scrollbar"
+                placeholder={`{
+  "date": "YYYY-MM-DD",
+  "summary": "A concise record of the dream...",
+  "keywords": ["threshold", "water", "return"],
+  "scenes": ["Scene description"]
+}`}
+                className="w-full bg-[#070b14]/80 border border-white/10 rounded-2xl p-4 sm:p-6 text-sm font-mono text-slate-300 placeholder:text-slate-600 min-h-[13rem] sm:min-h-[18rem] focus:ring-1 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all resize-y custom-scrollbar"
               />
               {error && (
                 <p className="text-red-400 text-xs mt-3 flex items-center gap-2">
@@ -982,7 +1034,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
               <div className="mt-6 flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
                 <button
                   onClick={copyPrompt}
-                  className="text-slate-400 hover:text-white px-4 py-3 min-h-[44px] text-xs font-medium uppercase tracking-wider transition-colors flex items-center justify-center gap-2 rounded-full border border-white/10 hover:border-white/20"
+                  className="text-slate-400 hover:text-white px-4 py-3 min-h-[44px] text-xs font-medium uppercase tracking-wider transition-colors flex items-center justify-center gap-2 rounded-full border border-white/10 hover:border-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/70"
                 >
                   <Copy size={14} /> Copy System Prompt
                 </button>
@@ -996,9 +1048,10 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 >
                   <button
                     onClick={parseJson}
-                    className="text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+                    disabled={!jsonText.trim()}
+                    className="text-white px-8 py-3 min-h-[44px] rounded-full text-sm font-bold tracking-wide transition-all bg-transparent hover:shadow-[0_0_20px_rgba(147,51,234,0.3)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300/70 disabled:cursor-not-allowed disabled:text-slate-500 disabled:hover:shadow-none"
                   >
-                    PARSE JSON
+                    Parse JSON
                   </button>
                 </GlassSurfaceReactBits>
               </div>
@@ -1007,12 +1060,17 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
         </div>
       ) : (
         <div className="space-y-8 animate-fade-in">
-          <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-4 sm:p-8">
+          <div className="bg-[#131b2e]/90 border border-white/5 rounded-[1.25rem] p-4 sm:p-8">
             <div className="flex justify-between items-center mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-white/5">
-              <h3 className="text-xl text-white font-display">Review & Assets</h3>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-200/80 font-mono">
+                  Step 02
+                </p>
+                <h3 className="mt-2 text-xl text-white font-display">Review and Assets</h3>
+              </div>
               <button
                 onClick={() => setIsParsed(false)}
-                className="text-xs text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors px-3 py-2 min-h-[44px]"
+                className="text-xs text-slate-500 hover:text-red-300 uppercase tracking-widest transition-colors px-3 py-2 min-h-[44px] rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300/60"
               >
                 Reset Form
               </button>
@@ -1030,7 +1088,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full bg-black/30 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white focus:border-purple-500 outline-none transition-colors"
+                      className="w-full bg-[#070b14]/80 border border-white/10 rounded-lg pl-12 pr-4 py-3 min-h-[44px] text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -1041,7 +1099,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                   Dream Summary
                 </label>
                 <div className="text-slate-300 bg-black/30 border border-white/5 p-6 rounded-xl text-sm leading-relaxed font-serif italic whitespace-pre-wrap">
-                  {/* show the full parsed summary in the review — do not truncate here */}
+                  {/* show the full parsed summary in the review. Do not truncate here */}
                   {formData.summary}
                 </div>
               </div>
@@ -1052,8 +1110,8 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                     Scene Visualizations
                   </label>
                   <HintBubble storageKey="morpheus-hint-images-v1">
-                    Images are optional. Each scene can have one visualization attached. This could
-                    be a screenshot, AI-generated image, or personal photo.
+                    Images are optional. Attach visuals only when they make a scene easier to
+                    recognize later.
                   </HintBubble>
                 </div>
                 {scenes.map((scene, idx) => (
@@ -1074,7 +1132,11 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                       <div className="flex-shrink-0 self-stretch sm:self-auto">
                         <label className="cursor-pointer group relative flex items-center justify-center h-32 w-full sm:h-24 sm:w-24 rounded-lg overflow-hidden bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all min-h-[44px]">
                           {scene.preview ? (
-                            <img src={scene.preview} className="h-full w-full object-cover" />
+                            <img
+                              src={scene.preview}
+                              alt={`Scene ${String(idx + 1).padStart(2, '0')} preview`}
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 group-hover:text-purple-400 transition-colors">
                               <ImageIcon size={20} className="mb-1" />
@@ -1099,7 +1161,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                   <button
                     onClick={uploadToFirebase}
                     disabled={isUploading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold tracking-widest uppercase text-sm shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-2"
+                    className="w-full min-h-[52px] bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold tracking-widest uppercase text-sm shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300/70 flex items-center justify-center gap-2"
                   >
                     {isUploading ? (
                       <>
@@ -1116,7 +1178,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 ) : null}
                 <button
                   onClick={generateZip}
-                  className={`w-full py-4 rounded-xl font-bold tracking-widest uppercase text-sm transition-all transform hover:scale-[1.01] ${
+                  className={`w-full min-h-[52px] py-4 rounded-xl font-bold tracking-widest uppercase text-sm transition-all transform hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300/70 ${
                     isConfigured && user
                       ? 'bg-transparent border border-white/10 text-slate-400 hover:text-white hover:border-white/30'
                       : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20'
@@ -1127,7 +1189,7 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
                 <p className="text-center text-slate-500 text-xs pt-1">
                   {isConfigured && user
                     ? 'Publish to Archive uploads directly to Firebase. Export Bundle downloads a local zip backup.'
-                    : 'Extracts to project root. Add date to index.json manually.'}
+                    : 'Export Bundle downloads a local zip. Add the date to index.json when importing manually.'}
                 </p>
               </div>
             </div>
