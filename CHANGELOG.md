@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.2] - 2026-04-30
+
+### Changed
+
+- Removed the Firebase Functions dependency from account data deletion.
+- Added deployment scripts for redeploying Firestore/Storage rules or the full hosted app without Functions.
+
+### Fixed
+
+- Allow signed-in users to delete their own Storage images under `users/{uid}/images`.
+
 ## [1.4.0] - 2026-01-18
 
 ### Added

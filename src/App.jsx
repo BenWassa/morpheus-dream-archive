@@ -21,9 +21,10 @@ import GooeyNav from './component/GooeyNav';
 import GlassSurface from './component/GlassSurface';
 import GlassSurfaceReactBits from './component/GlassSurfaceReactBits';
 import GlassSurfaceDemo from './component/GlassSurfaceDemo';
-import { db, storage, functions, isConfigured, signInWithGoogle, signOutUser } from './firebase.js';
+import { db, storage, isConfigured, signInWithGoogle, signOutUser } from './firebase.js';
 import {
   doc,
+  deleteDoc,
   setDoc,
   collection,
   getDocs,
@@ -31,8 +32,7 @@ import {
   query,
   serverTimestamp,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { httpsCallable } from 'firebase/functions';
+import { ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebase/storage';
 import { updateProfile } from 'firebase/auth';
 import { useAuth } from './hooks/useAuth.js';
 
@@ -1417,8 +1417,18 @@ const ProfileModal = ({ user, profilePhotoUrl, isOpen, onClose, onProfilePhotoCh
     setIsDeleting(true);
     setError('');
     try {
-      if (!functions) throw new Error('Firebase functions are not configured.');
-      await httpsCallable(functions, 'deleteUserData')();
+      if (!db || !storage) throw new Error('Firebase is not configured.');
+
+      const entriesRef = collection(db, 'users', user.uid, 'entries');
+      const imagesRef = ref(storage, `users/${user.uid}/images`);
+      const [entriesSnapshot, imagesSnapshot] = await Promise.all([
+        getDocs(entriesRef),
+        listAll(imagesRef),
+      ]);
+
+      await Promise.all(entriesSnapshot.docs.map((entryDoc) => deleteDoc(entryDoc.ref)));
+      await Promise.all(imagesSnapshot.items.map((imageRef) => deleteObject(imageRef)));
+
       onClose();
       await signOutUser();
     } catch (err) {
