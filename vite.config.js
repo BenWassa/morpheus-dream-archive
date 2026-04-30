@@ -19,27 +19,6 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            urlPattern: /\/index\.json(\?.*)?$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'morpheus-index',
-              networkTimeoutSeconds: 3,
-            },
-          },
-          {
-            urlPattern: /\/entries\/.*\.json(\?.*)?$/,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'morpheus-entries' },
-          },
-          {
-            urlPattern: /\/images\/.*\.(?:jpg|jpeg|png|webp|svg)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'morpheus-images',
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'gfonts' },
