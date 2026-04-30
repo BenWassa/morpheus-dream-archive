@@ -1246,6 +1246,43 @@ Return only well-formed JSON that strictly follows the schema and constraints ab
 };
 
 /* --- AUTH GATE --- */
+const AccessDenied = ({ user }) => {
+  const handleSignOut = async () => {
+    await signOutUser();
+  };
+
+  return (
+    <div className="relative z-10 pt-32 pb-20 px-6 max-w-4xl mx-auto min-h-screen flex flex-col items-center justify-center gap-8">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-red-500/20 to-orange-400/20 border border-white/10 flex items-center justify-center">
+          <X size={28} className="text-red-400" />
+        </div>
+        <h2 className="text-3xl sm:text-4xl font-display text-white tracking-tight">
+          Access denied
+        </h2>
+        <p className="text-slate-300/90 max-w-[50ch] text-sm leading-relaxed">
+          {user?.email} is not authorised to access this archive.
+        </p>
+      </div>
+      <GlassSurfaceReactBits
+        width="auto"
+        height="auto"
+        borderRadius={9999}
+        backgroundOpacity={0}
+        blur={11}
+        className="rounded-full shadow-xl"
+      >
+        <button
+          onClick={handleSignOut}
+          className="text-white px-10 py-4 rounded-full text-sm font-bold tracking-widest uppercase transition-all bg-transparent hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+        >
+          Sign Out
+        </button>
+      </GlassSurfaceReactBits>
+    </div>
+  );
+};
+
 const AuthGate = () => {
   const [authError, setAuthError] = useState('');
 
@@ -1574,7 +1611,7 @@ function App() {
   );
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
-  const { user, loading } = useAuth();
+  const { user, loading, isAllowed } = useAuth();
 
   useEffect(() => {
     setProfilePhotoUrl(user?.photoURL || '');
@@ -1611,6 +1648,15 @@ function App() {
       <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
         <Background />
         <AuthGate />
+      </div>
+    );
+  }
+
+  if (isConfigured && user && !isAllowed) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-purple-200">
+        <Background />
+        <AccessDenied user={user} />
       </div>
     );
   }
