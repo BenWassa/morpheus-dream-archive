@@ -42,6 +42,8 @@ const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO === 'true' || false;
 const ENABLE_STATIC_ENTRY_FALLBACK =
   import.meta.env.VITE_ENABLE_STATIC_ENTRY_FALLBACK === 'true' || !isConfigured;
 
+let hasLoggedFirestoreFallbackWarning = false;
+
 const FALLBACK_IMAGE =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBmMTcyYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTMzNDciLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMTAwIiByPSIxNTAiIGZpbGw9IiMyMTM5NjEiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjM1MCIgcj0iMTgwIiBmaWxsPSIjMWIxODJlIiBvcGFjaXR5PSIwLjciLz4KPC9zdmc+';
 
@@ -225,13 +227,25 @@ const Toast = ({ isVisible, message }) => (
 
 // Header
 const Avatar = ({ user, photoUrl, size = 'sm' }) => {
+  const [imageFailed, setImageFailed] = useState(false);
   const sizeClass = size === 'lg' ? 'h-16 w-16 text-base' : 'h-8 w-8 text-[10px]';
+  const showImage = Boolean(photoUrl) && !imageFailed;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [photoUrl]);
+
   return (
     <div
       className={`${sizeClass} rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center font-semibold tracking-widest text-cyan-100`}
     >
-      {photoUrl ? (
-        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+      {showImage ? (
+        <img
+          src={photoUrl}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
       ) : (
         <span>{getUserInitials(user)}</span>
       )}
@@ -411,6 +425,7 @@ const GalleryView = ({
   const loadEntries = async () => {
     setLoading(true);
     const allEntries = [];
+    let shouldLoadStaticFallback = ENABLE_STATIC_ENTRY_FALLBACK;
 
     // Firebase branch: fetch from Firestore when signed in
     if (isConfigured && user) {
@@ -419,12 +434,16 @@ const GalleryView = ({
         const snapshot = await getDocs(q);
         snapshot.docs.forEach((d) => allEntries.push(d.data()));
       } catch (err) {
-        console.warn('Firestore unavailable, falling back to static only:', err);
+        shouldLoadStaticFallback = true;
+        if (!hasLoggedFirestoreFallbackWarning) {
+          console.warn('Firestore unavailable, falling back to static entries:', err);
+          hasLoggedFirestoreFallbackWarning = true;
+        }
       }
     }
 
     // Static branch: fetch from public/ files, skip dates already loaded from Firestore
-    if (ENABLE_STATIC_ENTRY_FALLBACK) {
+    if (shouldLoadStaticFallback) {
       try {
         const indexResponse = await fetch(`${baseUrl}index.json?v=${Date.now()}`);
         if (indexResponse.ok) {
