@@ -33,6 +33,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
+import { updateProfile } from 'firebase/auth';
 import { useAuth } from './hooks/useAuth.js';
 
 // Set to true to enable the development demo page.
@@ -59,6 +60,16 @@ const getUserInitials = (user) => {
     .slice(0, 2)
     .map((word) => word[0]?.toUpperCase())
     .join('');
+};
+
+const getProfileImagePath = (userId, file) => {
+  const extension =
+    file.name
+      .split('.')
+      .pop()
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]/g, '') || 'jpg';
+  return `users/${userId}/images/profile-${Date.now()}.${extension}`;
 };
 
 /* --- UI COMPONENTS --- */
@@ -213,7 +224,22 @@ const Toast = ({ isVisible, message }) => (
 );
 
 // Header
-const Header = ({ currentView, setCurrentView, user, onOpenProfile }) => {
+const Avatar = ({ user, photoUrl, size = 'sm' }) => {
+  const sizeClass = size === 'lg' ? 'h-16 w-16 text-base' : 'h-8 w-8 text-[10px]';
+  return (
+    <div
+      className={`${sizeClass} rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center font-semibold tracking-widest text-cyan-100`}
+    >
+      {photoUrl ? (
+        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <span>{getUserInitials(user)}</span>
+      )}
+    </div>
+  );
+};
+
+const Header = ({ currentView, setCurrentView, user, profilePhotoUrl, onOpenProfile }) => {
   const navItems = [
     {
       label: 'ARCHIVE',
@@ -273,14 +299,10 @@ const Header = ({ currentView, setCurrentView, user, onOpenProfile }) => {
             <button
               onClick={onOpenProfile}
               title="Open profile"
-              className="h-8 w-8 rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center text-[10px] font-semibold tracking-widest text-cyan-100 hover:border-cyan-300/50 transition-colors"
+              className="rounded-full hover:border-cyan-300/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/70 transition-colors"
               aria-label="Open profile"
             >
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span>{getUserInitials(user)}</span>
-              )}
+              <Avatar user={user} photoUrl={profilePhotoUrl} />
             </button>
           )}
           <div className="bg-white/5 rounded-full border border-white/5 transition-all">
@@ -1260,10 +1282,12 @@ const AuthLoadingScreen = () => (
   </div>
 );
 
-const ProfileModal = ({ user, isOpen, onClose }) => {
+const ProfileModal = ({ user, profilePhotoUrl, isOpen, onClose, onProfilePhotoChange }) => {
   const dialogRef = useRef(null);
+  const photoInputRef = useRef(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -1317,6 +1341,52 @@ const ProfileModal = ({ user, isOpen, onClose }) => {
   const handleSignOut = async () => {
     onClose();
     await signOutUser();
+  };
+
+  const handleProfilePhotoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Profile images must be smaller than 5 MB.');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setError('');
+    try {
+      if (!storage) throw new Error('Firebase storage is not configured.');
+      const storageRef = ref(storage, getProfileImagePath(user.uid, file));
+      await uploadBytes(storageRef, file, { contentType: file.type });
+      const downloadURL = await getDownloadURL(storageRef);
+      await updateProfile(user, { photoURL: downloadURL });
+      onProfilePhotoChange(downloadURL);
+    } catch (err) {
+      console.error('Profile image upload failed:', err);
+      setError('Could not update your profile image. Please try again.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleUsePlaceholder = async () => {
+    setIsUploadingPhoto(true);
+    setError('');
+    try {
+      await updateProfile(user, { photoURL: null });
+      onProfilePhotoChange('');
+    } catch (err) {
+      console.error('Profile image reset failed:', err);
+      setError('Could not reset your profile image. Please try again.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleDeleteAllData = async () => {
@@ -1374,18 +1444,50 @@ const ProfileModal = ({ user, isOpen, onClose }) => {
 
         <div className="p-5 space-y-6">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full border border-white/15 bg-white/5 overflow-hidden flex items-center justify-center text-sm font-semibold tracking-widest text-cyan-100">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span>{getUserInitials(user)}</span>
-              )}
-            </div>
-            <div className="min-w-0">
+            <Avatar user={user} photoUrl={profilePhotoUrl} size="lg" />
+            <div className="min-w-0 flex-1">
               <p className="text-white font-medium truncate">
                 {user.displayName || 'Morpheus user'}
               </p>
               <p className="text-sm text-slate-400 truncate">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4 space-y-4">
+            <div>
+              <p className="text-xs font-mono uppercase tracking-[0.18em] text-cyan-200">
+                Profile image
+              </p>
+              <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+                Upload an image for this archive, or keep the initials placeholder.
+              </p>
+            </div>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleProfilePhotoUpload}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={isUploadingPhoto}
+                className="min-h-[44px] rounded-full border border-cyan-300/25 px-5 py-3 flex items-center justify-center gap-2 text-sm text-cyan-100 hover:border-cyan-300/50 hover:bg-cyan-300/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                <Upload size={15} />
+                {isUploadingPhoto ? 'Updating...' : 'Upload image'}
+              </button>
+              <button
+                type="button"
+                onClick={handleUsePlaceholder}
+                disabled={isUploadingPhoto || !profilePhotoUrl}
+                className="min-h-[44px] rounded-full border border-white/10 px-5 py-3 flex items-center justify-center gap-2 text-sm text-slate-200 hover:border-white/20 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ImageIcon size={15} />
+                Use placeholder
+              </button>
             </div>
           </div>
 
@@ -1437,7 +1539,12 @@ function App() {
   const [currentView, setCurrentView] = useState('gallery');
   const [onboardingState, setOnboardingState] = useState({ completed: false, dismissed: false });
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    setProfilePhotoUrl(user?.photoURL || '');
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -1496,6 +1603,7 @@ function App() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         user={user}
+        profilePhotoUrl={profilePhotoUrl}
         onOpenProfile={() => setIsProfileOpen(true)}
       />
 
@@ -1519,7 +1627,13 @@ function App() {
         {SHOW_DEMO && currentView === 'demo' && <GlassSurfaceDemo />}
       </main>
 
-      <ProfileModal user={user} isOpen={isProfileOpen} onClose={closeProfile} />
+      <ProfileModal
+        user={user}
+        profilePhotoUrl={profilePhotoUrl}
+        isOpen={isProfileOpen}
+        onClose={closeProfile}
+        onProfilePhotoChange={setProfilePhotoUrl}
+      />
     </div>
   );
 }
